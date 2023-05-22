@@ -56,12 +56,3 @@ fun SplashContent() {
     }
 
 }
-
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    FeedArticlesComposeTheme {
-        SplashContent()
-    }
-}

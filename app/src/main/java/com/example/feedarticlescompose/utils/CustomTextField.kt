@@ -12,6 +12,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.example.feedarticlescompose.ui.theme.BlueApp
 
 @Composable
 fun CustomTextField(
@@ -25,9 +26,9 @@ fun CustomTextField(
 
     BasicTextField(
         value = value,
-       /* textStyle= TextStyle(
-            color =
-        ),*/
+       textStyle= TextStyle(
+            color = BlueApp
+        ),
         modifier = Modifier
             .onFocusChanged {
                 isFocus = !isFocus
@@ -49,14 +50,14 @@ fun CustomTextField(
                 if (value.isEmpty()) {
                     Text(
                         text = placeholder ?: "",
-                        color = Color.Gray
+                        //color = Color.Gray
                     )
                 } else {
                     val scroll = rememberScrollState(0)
                     Text(
                         modifier = Modifier.horizontalScroll(scroll),
                         text =  value,
-                        color = Color.Black
+                        //color = Color.Black
                     )
                 }
 
