@@ -143,7 +143,7 @@ fun MainScreen(
     LaunchedEffect(true ) {
         viewModel.goToLoginSharedFlow.collect {
             navController.navigate(it.route) {
-                popUpTo(it.route) {
+                popUpTo(Screen.Main.route) {
                     inclusive = true
                 }
             }
@@ -156,7 +156,7 @@ fun MainScreen(
                 MainViewModel.MainState.ERROR_PARAM -> R.string.error_param
                 MainViewModel.MainState.ERROR_SERVER -> R.string.error_server
                 MainViewModel.MainState.ERROR_CONNECTION -> R.string.error_connection
-                MainViewModel.MainState.ERROR_AUTHORIZATION -> R.string.error_authorizarion
+                MainViewModel.MainState.ERROR_AUTHORIZATION -> R.string.error_authorization
 
             }.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()

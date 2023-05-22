@@ -44,6 +44,7 @@ fun RegisterScreen(
     LaunchedEffect(true) {
         viewModel.messageSharedFlow.collect {message->
             when(message) {
+                RegisterViewModel.RegisterState.FAILURE -> R.string.account_failed
                 RegisterViewModel.RegisterState.ERROR_SERVER -> R.string.error_server
                 RegisterViewModel.RegisterState.ERROR_AUTHORIZATION -> R.string.error_authorization
                 RegisterViewModel.RegisterState.ERROR_CONNECTION -> R.string.error_connection
@@ -59,9 +60,9 @@ fun RegisterScreen(
         login = login,
         password = password,
         confirm = confirm,
-        handleLogin = { viewModel.updateLogin(it)},
-        handlePassword = { viewModel.updatePassword(it)},
-        handleConfirm = { viewModel.updateConfirm(it)},
+        handleLogin = { viewModel.updateLogin(it) },
+        handlePassword = { viewModel.updatePassword(it) },
+        handleConfirm = { viewModel.updateConfirm(it) },
         handleClick = { viewModel.register() }
     )
 }
@@ -109,7 +110,7 @@ fun RegisterContent(
             CustomTextField(
                 placeholder = "Password" ,
                 value = password,
-                handleValue = { handlePassword(it)}
+                handleValue = { handlePassword(it) }
             )
             Spacer(modifier = Modifier.height(40.dp))
             CustomTextField(

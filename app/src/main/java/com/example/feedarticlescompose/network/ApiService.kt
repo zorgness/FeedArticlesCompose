@@ -1,8 +1,6 @@
 package com.example.feedarticlescompose.network
 
-import com.example.feedarticlescompose.dataclass.ArticleDto
-import com.example.feedarticlescompose.dataclass.RegisterDto
-import com.example.feedarticlescompose.dataclass.SessionDto
+import com.example.feedarticlescompose.dataclass.*
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -19,4 +17,32 @@ interface ApiService {
 
     @GET(ApiRoutes.ARTICLES)
     suspend fun fetchArticles() : Response<List<ArticleDto>>?
+
+    @PUT(ApiRoutes.ARTICLES)
+    suspend fun addNewArticle(
+        @Body newArticleDto: NewArticleDto,
+        @HeaderMap headers: Map<String, String>,
+    ): Response<StatusDto>?
+
+/*    @GET(ApiRoutes.ARTICLES)
+    suspend fun getArticleById(
+        @HeaderMap headers: Map<String, String>,
+        @Query("id") articleId: Long,
+        @Query("with_fav") withFav: Int?
+    ): Response<GetArticleDto>?
+
+    @POST(ApiRoutes.ARTICLES)
+    suspend fun updateArticle(
+        @Query("id") articleId: Long,
+        @HeaderMap headers: Map<String, String>,
+        @Body updateArticleDto: UpdateArticleDto
+
+
+    ): Response<StatusDto>?*/
+
+    @DELETE(ApiRoutes.ARTICLES)
+    suspend fun deleteArticle(
+        @Query("id") articleId: Long,
+        @HeaderMap headers: Map<String, String>
+    ): Response<StatusDto>?
 }

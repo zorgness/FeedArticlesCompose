@@ -1,5 +1,6 @@
 package com.example.feedarticlescompose.ui.register
 
+import ERROR_401
 import ERROR_403
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,7 +32,8 @@ class RegisterViewModel @Inject constructor(
         ERROR_CONNECTION,
         ERROR_SERVER,
         EMPTY_FIELDS,
-        ERROR_CONFIRMATION
+        ERROR_CONFIRMATION,
+        FAILURE
     }
 
     private val _loginStateFlow = MutableStateFlow("")
@@ -68,7 +70,8 @@ class RegisterViewModel @Inject constructor(
             &&
             passwordStateFlow.value.isNotBlank()
         ) {
-            if(passwordStateFlow.value != confirmStateFlow.value) {
+            if (passwordStateFlow.value == confirmStateFlow.value) {
+
                 try {
 
                     viewModelScope.launch {
@@ -88,6 +91,8 @@ class RegisterViewModel @Inject constructor(
                                 _goToMainSharedFlow.emit(Screen.Main)
                             }
 
+                            responseRegister.code() == ERROR_401 ->
+                                message = RegisterState.FAILURE
 
                             responseRegister.code() == ERROR_403 ->
                                 message = RegisterState.ERROR_AUTHORIZATION

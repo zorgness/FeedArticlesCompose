@@ -12,6 +12,7 @@
     <string name="wrong_credential">mauvais login ou mot de passe</string>
     <string name="empty_fields">tous les champs doivent être remplis</string>
     <string name="error_confirmation">mot de passe différents de confirmation</string>
+    <string name="account_failed">nouveau compte non créé</string>
 
 
 </resources>

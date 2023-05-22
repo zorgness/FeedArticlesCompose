@@ -32,7 +32,7 @@ class LoginViewModel @Inject constructor(
         ERROR_CONNECTION,
         ERROR_SERVER,
         WRONG_CREDENTIAL,
-        EMPTY_FIELDS
+        EMPTY_FIELDS,
     }
 
     private val _loginStateFlow = MutableStateFlow("")

@@ -27,20 +27,16 @@ fun SplashScreen(
     viewModel : SplashViewModel
 ) {
 
-    // 1 SUBSCRIBE
     LaunchedEffect(true ) {
-        viewModel.goToMainScreen.collect {
-            if(it) {
-                navController.navigate(Screen.Main.route) {
-                    popUpTo(Screen.Splash.route) {
-                        inclusive = true
-                    }
+        viewModel.goToScreen.collect {
+            navController.navigate(Screen.Main.route) {
+                popUpTo(Screen.Splash.route) {
+                    inclusive = true
                 }
             }
         }
     }
 
-    // 2 EMIT
     viewModel.initSplash()
     SplashContent()
 }

@@ -24,13 +24,13 @@ class MySharedPref(context: Context) {
         sharedPreferences.edit().putLong(key, value).apply()
     }
 
-    private fun getInt(key: String, defaultValue: Int): Int {
-        return sharedPreferences.getInt(key, defaultValue)
+    private fun getLong(key: String, defaultValue: Long): Long {
+        return sharedPreferences.getLong(key, defaultValue)
     }
 
 
-    fun getUserId(): Int {
-        return getInt(SHAREDPREF_SESSION_USER_ID, 0)
+    fun getUserId(): Long {
+        return getLong(SHAREDPREF_SESSION_USER_ID, 0)
     }
 
     fun getToken(): String? {
