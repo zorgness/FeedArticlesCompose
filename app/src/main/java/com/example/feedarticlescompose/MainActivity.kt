@@ -1,5 +1,11 @@
 package com.example.feedarticlescompose
 
+import FormScreen
+import LoginScreen
+import MainScreen
+import RegisterScreen
+import SplashScreen
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,7 +16,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
+import com.example.feedarticlescompose.utils.Screen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting("Android")
+                    AppNavigation()
                 }
             }
         }
@@ -30,14 +40,34 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
+fun AppNavigation() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = Screen.Splash.route ) {
+        composable(Screen.Splash.route) {
+            SplashScreen(navController)
+        }
+        composable(Screen.Login.route) {
+            LoginScreen(navController)
+        }
+        composable(Screen.Login.route) {
+            RegisterScreen(navController)
+        }
+        composable(Screen.Login.route) {
+            MainScreen(navController)
+        }
+        composable(Screen.Login.route) {
+            FormScreen(navController)
+        }
+    }
+
+
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     FeedArticlesComposeTheme {
-        Greeting("Android")
+
     }
 }
