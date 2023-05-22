@@ -55,7 +55,7 @@ fun LoginContent() {
             )
             Spacer(modifier = Modifier.height(40.dp))
             CustomTextField(
-                placeholder = "Register" ,
+                placeholder = "Password" ,
                 value = "",
                 handleValue = {
 
@@ -94,10 +94,3 @@ fun LoginContent() {
 
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    FeedArticlesComposeTheme {
-        LoginContent()
-    }
-}
