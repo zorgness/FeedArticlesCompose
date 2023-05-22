@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.network.ApiService
+import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -15,25 +16,22 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.Dispatcher
 import retrofit2.Response
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val sharedPref: MySharedPref
 ): ViewModel() {
 
     enum class MainState {
         ERROR_SERVER,
-        ERROR_CONNECTIOIN,
+        ERROR_CONNECTION,
         ERROR_AUTHORIZATION,
         ERROR_PARAM
     }
 
-
-    private val _messageSharedFlow = MutableSharedFlow<MainState>()
-    val messageSharedFlow = _messageSharedFlow.asSharedFlow()
 
     private val _isLoadingStateFlow = MutableStateFlow(true)
     val isLoadingStateFlow = _isLoadingStateFlow.asStateFlow()
@@ -44,34 +42,48 @@ class MainViewModel @Inject constructor(
     private val _articlesListStateFlow = MutableStateFlow(emptyList<ArticleDto>())
     val articlesListStateFlow = _articlesListStateFlow.asStateFlow()
 
+    private val _messageSharedFlow = MutableSharedFlow<MainState>()
+    val messageSharedFlow = _messageSharedFlow.asSharedFlow()
+
+    private val _goToLoginSharedFlow = MutableSharedFlow<Screen>()
+    val goToLoginSharedFlow = _goToLoginSharedFlow.asSharedFlow()
+
 
     private var message: MainState? = null
 
+    fun updateSelectedCategory(position: Int) {
+        _selectedCategoryStateflow.value = position
+    }
+
     fun fetchArticles() {
+
+            val headers = HashMap<String, String>()
+            headers["token"] = sharedPref.getToken() ?: ""
+
             viewModelScope.launch {
                 try {
-                    val responseFetchAll: Response<List<ArticleDto>>? = withContext(Dispatchers.IO) {
+                    val responseFetchArticles: Response<List<ArticleDto>>? = withContext(Dispatchers.IO) {
                         apiService.fetchArticles()
                     }
-                    val body = responseFetchAll?.body()
+                    val body = responseFetchArticles?.body()
 
                     when {
-                        responseFetchAll?.body() == null ->
+                        responseFetchArticles?.body() == null ->
                             message = MainState.ERROR_SERVER
 
-                        responseFetchAll.isSuccessful && (body != null) -> {
+                        responseFetchArticles.isSuccessful && (body != null) -> {
                             //articlesFullList.addAll(body)
                             //if selected > 0 filter
                         }
 
-                        responseFetchAll.code() == ERROR_403 ->
+                        responseFetchArticles.code() == ERROR_403 ->
                             message = MainState.ERROR_AUTHORIZATION
 
-                        responseFetchAll.code() == ERROR_400 ->
+                        responseFetchArticles.code() == ERROR_400 ->
                             message = MainState.ERROR_PARAM
                     }
                 } catch (e: Exception) {
-                    message = MainState.ERROR_CONNECTIOIN
+                    message = MainState.ERROR_CONNECTION
                 }
             }
 
@@ -82,5 +94,12 @@ class MainViewModel @Inject constructor(
             }
         }
 
+    }
+
+    fun logout() {
+        sharedPref.clearSharedPref()
+        viewModelScope.launch {
+            _goToLoginSharedFlow.emit(Screen.Login)
+        }
     }
 }

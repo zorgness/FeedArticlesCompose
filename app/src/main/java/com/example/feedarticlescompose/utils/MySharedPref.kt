@@ -20,8 +20,8 @@ class MySharedPref(context: Context) {
         return sharedPreferences.getString(key, defaultValue)
     }
 
-    private fun saveInt(key: String, value: Int) {
-        sharedPreferences.edit().putInt(key, value).apply()
+    private fun saveLong(key: String, value: Long) {
+        sharedPreferences.edit().putLong(key, value).apply()
     }
 
     private fun getInt(key: String, defaultValue: Int): Int {
@@ -37,8 +37,8 @@ class MySharedPref(context: Context) {
         return getString(SHAREDPREF_SESSION_TOKEN, null)
     }
 
-    fun saveUserId(userId: Int) {
-        saveInt(SHAREDPREF_SESSION_USER_ID, userId)
+    fun saveUserId(userId: Long) {
+        saveLong(SHAREDPREF_SESSION_USER_ID, userId)
     }
 
     fun saveToken(token: String) {

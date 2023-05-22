@@ -1,5 +1,6 @@
-import android.content.Context
-import android.widget.RadioButton
+package com.example.feedarticlescompose.ui.main
+
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,13 +9,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -25,17 +25,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
-import com.example.feedarticlescompose.ui.main.MainViewModel
-import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
 import com.example.feedarticlescompose.utils.Screen
 
 
@@ -145,6 +140,30 @@ fun MainScreen(
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
     val context = LocalContext.current
 
+    LaunchedEffect(true ) {
+        viewModel.goToLoginSharedFlow.collect {
+            navController.navigate(it.route) {
+                popUpTo(it.route) {
+                    inclusive = true
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(true){
+        viewModel.messageSharedFlow.collect { message ->
+            when (message) {
+                MainViewModel.MainState.ERROR_PARAM -> R.string.error_param
+                MainViewModel.MainState.ERROR_SERVER -> R.string.error_server
+                MainViewModel.MainState.ERROR_CONNECTION -> R.string.error_connection
+                MainViewModel.MainState.ERROR_AUTHORIZATION -> R.string.error_authorizarion
+
+            }.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     MainContent(
         selectedCategory = selectedCategory,
         articlesList = articlesList,
@@ -153,8 +172,10 @@ fun MainScreen(
         goToNewArticle = {
             navController.navigate(Screen.Form.route)
         },
-        handleLogout = {},
-        handleCategory = {}
+        handleLogout = { viewModel.logout() },
+        handleCategory = { position->
+            viewModel.updateSelectedCategory(position)
+        }
 
     )
 }

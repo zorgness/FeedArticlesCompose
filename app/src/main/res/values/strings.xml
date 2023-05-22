@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">FeedArticlesCompose</string>
+
+
+    <!--ERROR_NETWORK-->
+    <string name="error_server">erreur serveur</string>
+    <string name="error_authorizarion">probléme d\'autorisation</string>
+    <string name="error_connection">pas de connection</string>
+    <string name="error_param">probléme de paramétres</string>
+
+    <!--LOGIN REGISTER-->
+    <string name="wrong_credential">mauvais login ou mot de passe</string>
+    <string name="empty_fields">tous les champs doivent être remplis</string>
+
+
 </resources>

@@ -2,18 +2,15 @@ package com.example.feedarticlescompose
 
 import FormScreen
 import LoginScreen
-import MainScreen
+import com.example.feedarticlescompose.ui.main.MainScreen
 import RegisterScreen
 import SplashScreen
-import android.app.Application
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.ui.main.MainViewModel
 import com.example.feedarticlescompose.ui.splash.SplashViewModel
 import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
@@ -54,7 +52,8 @@ fun AppNavigation() {
             SplashScreen(navController, splashViewModel)
         }
         composable(Screen.Login.route) {
-            LoginScreen(navController)
+            val loginViewModel: LoginViewModel = hiltViewModel()
+            LoginScreen(navController, loginViewModel)
         }
         composable(Screen.Register.route) {
             RegisterScreen(navController)
