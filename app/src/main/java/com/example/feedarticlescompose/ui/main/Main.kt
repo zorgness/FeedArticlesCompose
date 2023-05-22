@@ -34,7 +34,7 @@ import com.example.feedarticlescompose.R
 import com.example.feedarticlescompose.utils.Screen
 
 
-val articlesList = listOf(
+/*val articlesList = listOf(
     ArticleDto(
         1,
         "test 1",
@@ -126,7 +126,7 @@ val articlesList = listOf(
         "20/03/23",
         1
     ),
-)
+)*/
 
 
 
@@ -135,7 +135,7 @@ fun MainScreen(
     navController: NavHostController,
     viewModel: MainViewModel,
 ) {
-    //val articlesList by viewModel.articlesListStateFlow.collectAsState()
+    val articlesList by viewModel.articlesListStateFlow.collectAsState()
     val isLoading by viewModel.isLoadingStateFlow.collectAsState()
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
     val context = LocalContext.current
@@ -163,6 +163,8 @@ fun MainScreen(
             }
         }
     }
+
+    viewModel.fetchAllArticles()
 
     MainContent(
         selectedCategory = selectedCategory,

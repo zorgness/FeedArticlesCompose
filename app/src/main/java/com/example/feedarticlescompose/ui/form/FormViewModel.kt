@@ -79,7 +79,6 @@ class FormViewModel @Inject constructor(
 
     fun newArticle() {
 
-
         headers["token"] = sharedPref.getToken() ?: ""
 
         if(

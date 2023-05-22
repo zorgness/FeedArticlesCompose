@@ -29,7 +29,7 @@ fun SplashScreen(
 
     LaunchedEffect(true ) {
         viewModel.goToScreen.collect {
-            navController.navigate(Screen.Main.route) {
+            navController.navigate(it.route) {
                 popUpTo(Screen.Splash.route) {
                     inclusive = true
                 }

@@ -8,6 +8,7 @@ interface ApiService {
 
     @PUT(ApiRoutes.USER)
     suspend fun register(@Body registerDto: RegisterDto): Response<SessionDto>?
+
     @FormUrlEncoded
     @POST(ApiRoutes.USER)
     suspend fun login(
@@ -15,8 +16,11 @@ interface ApiService {
         @Field("mdp") mdp: String
     ): Response<SessionDto>?
 
+
     @GET(ApiRoutes.ARTICLES)
-    suspend fun fetchArticles() : Response<List<ArticleDto>>?
+    suspend fun fetchAllArticles (
+        @HeaderMap headers: Map<String, String>,
+    ): Response<GetArticlesDto>?
 
     @PUT(ApiRoutes.ARTICLES)
     suspend fun addNewArticle(

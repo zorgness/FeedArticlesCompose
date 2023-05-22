@@ -38,7 +38,7 @@ fun LoginScreen(
     LaunchedEffect(true) {
         viewModel.goToMainSharedFlow.collect {
             navController.navigate(it.route) {
-                popUpTo(it.route) {
+                popUpTo(Screen.Login.route) {
                     inclusive = true
                 }
             }

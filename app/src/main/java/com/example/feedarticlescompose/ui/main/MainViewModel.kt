@@ -5,6 +5,7 @@ import ERROR_403
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
+import com.example.feedarticlescompose.dataclass.GetArticlesDto
 import com.example.feedarticlescompose.network.ApiService
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
@@ -55,15 +56,15 @@ class MainViewModel @Inject constructor(
         _selectedCategoryStateflow.value = position
     }
 
-    fun fetchArticles() {
+    fun fetchAllArticles() {
 
             val headers = HashMap<String, String>()
             headers["token"] = sharedPref.getToken() ?: ""
 
             viewModelScope.launch {
                 try {
-                    val responseFetchArticles: Response<List<ArticleDto>>? = withContext(Dispatchers.IO) {
-                        apiService.fetchArticles()
+                    val responseFetchArticles: Response<GetArticlesDto>? = withContext(Dispatchers.IO) {
+                        apiService.fetchAllArticles(headers)
                     }
                     val body = responseFetchArticles?.body()
 
@@ -72,8 +73,14 @@ class MainViewModel @Inject constructor(
                             message = MainState.ERROR_SERVER
 
                         responseFetchArticles.isSuccessful && (body != null) -> {
-                            //articlesFullList.addAll(body)
-                            //if selected > 0 filter
+
+                            if(body.status == "ok") {
+                                _isLoadingStateFlow.value = false
+                                _articlesListStateFlow.value = body.articles
+                            }
+
+                            if(body.status.contains("error"))
+                                message = MainState.ERROR_PARAM
                         }
 
                         responseFetchArticles.code() == ERROR_403 ->
