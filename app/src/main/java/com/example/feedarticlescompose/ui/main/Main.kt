@@ -1,3 +1,4 @@
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,7 +11,10 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +31,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
+import com.example.feedarticlescompose.ui.main.MainViewModel
 import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
 
 
@@ -129,17 +134,28 @@ val articlesList = listOf(
 @Composable
 fun MainScreen(
     navController: NavHostController?,
+    viewModel: MainViewModel
 ) {
+    val isLoading by viewModel.isLoadingStateFlow.collectAsState()
+
     MainContent(
         articlesList = articlesList,
-        onItemClickCallback = {}
+        isLoading = isLoading,
+        onItemClickCallback = {},
+        goToNewArticle = {},
+        onLogout = {}
+
     )
 }
 
 @Composable
 fun MainContent(
     articlesList: List<ArticleDto>,
-    onItemClickCallback: (ArticleDto) -> Unit
+    isLoading: Boolean,
+    onItemClickCallback: (ArticleDto) -> Unit,
+    goToNewArticle:() -> Unit,
+    onLogout:()-> Unit
+
 ) {
 
 
@@ -152,7 +168,11 @@ fun MainContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Header()
+            Header(
+                onAddIconClicked = {goToNewArticle()},
+                onLogoutIconClicked = {onLogout()}
+            )
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
@@ -171,6 +191,13 @@ fun MainContent(
             Footer()
 
         }
+        AnimatedVisibility(
+            visible = isLoading,
+            modifier = Modifier
+                .align(Alignment.Center)
+        ) {
+            CircularProgressIndicator()
+        }
 
     }
 }
@@ -178,13 +205,10 @@ fun MainContent(
 
 
 @Composable
-fun Header() {
-
-    /*Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(30.dp)
-    )*/
+fun Header(
+    onAddIconClicked: () -> Unit,
+    onLogoutIconClicked: () -> Unit
+) {
 
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -197,24 +221,19 @@ fun Header() {
                         .size(60.dp)
                         .align(Alignment.CenterStart)
                         .padding(8.dp)
-        )
+                        .clickable { onAddIconClicked() }
+            )
         Icon(
-            Icons.Outlined.Lock,
+            Icons.Rounded.Close,
             contentDescription = null,
             modifier = Modifier
                         .size(60.dp)
                         .align(Alignment.CenterEnd)
                         .padding(8.dp)
+                        .clickable { onLogoutIconClicked() }
         )
 
     }
-
-
-   /* Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(30.dp)
-    )*/
 
 }
 
@@ -222,8 +241,8 @@ fun Header() {
 fun Footer() {
     Spacer(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(20.dp)
+                    .fillMaxWidth()
+                    .height(20.dp)
     )
 
     RadioBtnMainGroup()
@@ -307,10 +326,3 @@ fun RadioBtnMainGroup() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    FeedArticlesComposeTheme {
-        MainScreen(navController = null)
-    }
-}
