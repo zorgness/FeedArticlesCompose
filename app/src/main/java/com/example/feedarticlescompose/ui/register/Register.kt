@@ -95,11 +95,3 @@ fun RegisterContent() {
     }
 
 }
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    FeedArticlesComposeTheme {
-        RegisterContent()
-    }
-}
