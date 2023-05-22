@@ -1,3 +1,4 @@
+import android.content.Context
 import android.widget.RadioButton
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
 import com.example.feedarticlescompose.ui.main.MainViewModel
 import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
+import com.example.feedarticlescompose.utils.Screen
 
 
 val articlesList = listOf(
@@ -135,18 +137,22 @@ val articlesList = listOf(
 
 @Composable
 fun MainScreen(
-    navController: NavHostController?,
-    viewModel: MainViewModel
+    navController: NavHostController,
+    viewModel: MainViewModel,
 ) {
+    //val articlesList by viewModel.articlesListStateFlow.collectAsState()
     val isLoading by viewModel.isLoadingStateFlow.collectAsState()
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
+    val context = LocalContext.current
 
     MainContent(
         selectedCategory = selectedCategory,
         articlesList = articlesList,
         isLoading = isLoading,
         handleItemClicked = {},
-        goToNewArticle = {},
+        goToNewArticle = {
+            navController.navigate(Screen.Form.route)
+        },
         handleLogout = {},
         handleCategory = {}
 

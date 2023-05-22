@@ -41,10 +41,9 @@ class MainViewModel @Inject constructor(
     private val _selectedCategoryStateflow = MutableStateFlow<Int>(0)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
-   /* private val _goToFormScreenSharedFlow = MutableSharedFlow<Screen>()
-    val goToFormScreenSharedFlow = _goToFormScreenSharedFlow.asSharedFlow()*/
+    private val _articlesListStateFlow = MutableStateFlow(emptyList<ArticleDto>())
+    val articlesListStateFlow = _articlesListStateFlow.asStateFlow()
 
-    private var articlesList = mutableListOf<ArticleDto>()
 
     private var message: MainState? = null
 
@@ -76,6 +75,12 @@ class MainViewModel @Inject constructor(
                 }
             }
 
+
+        message?.let {
+            viewModelScope.launch {
+                _messageSharedFlow.emit(it)
+            }
+        }
 
     }
 }
