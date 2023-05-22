@@ -70,6 +70,9 @@ fun LoginContent() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 40.dp),
                 onClick = { /*TODO*/ }
             ) {
                 Text(
