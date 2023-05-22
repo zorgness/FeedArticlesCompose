@@ -1,3 +1,4 @@
+import android.widget.RadioButton
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.dataclass.ArticleDto
@@ -137,24 +139,29 @@ fun MainScreen(
     viewModel: MainViewModel
 ) {
     val isLoading by viewModel.isLoadingStateFlow.collectAsState()
+    val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
 
     MainContent(
+        selectedCategory = selectedCategory,
         articlesList = articlesList,
         isLoading = isLoading,
-        onItemClickCallback = {},
+        handleItemClicked = {},
         goToNewArticle = {},
-        onLogout = {}
+        handleLogout = {},
+        handleCategory = {}
 
     )
 }
 
 @Composable
 fun MainContent(
+    selectedCategory: Int,
     articlesList: List<ArticleDto>,
     isLoading: Boolean,
-    onItemClickCallback: (ArticleDto) -> Unit,
+    handleItemClicked: (ArticleDto) -> Unit,
     goToNewArticle:() -> Unit,
-    onLogout:()-> Unit
+    handleLogout:()-> Unit,
+    handleCategory:(Int)->Unit
 
 ) {
 
@@ -170,7 +177,7 @@ fun MainContent(
 
             Header(
                 onAddIconClicked = {goToNewArticle()},
-                onLogoutIconClicked = {onLogout()}
+                onLogoutIconClicked = {handleLogout()}
             )
 
             LazyColumn(
@@ -183,12 +190,15 @@ fun MainContent(
                 items(items = articlesList){
                     ItemArticle(
                         item = it,
-                        onItemClickCallback = onItemClickCallback
+                        onItemClicked = handleItemClicked
                     )
                 }
             }
 
-            Footer()
+            Footer(
+                selectedCategory,
+                onRadioSelected = { handleCategory(it) }
+            )
 
         }
         AnimatedVisibility(
@@ -218,53 +228,38 @@ fun Header(
             Icons.Outlined.Add,
             contentDescription = null,
             modifier = Modifier
-                        .size(60.dp)
-                        .align(Alignment.CenterStart)
-                        .padding(8.dp)
-                        .clickable { onAddIconClicked() }
+                .size(60.dp)
+                .align(Alignment.CenterStart)
+                .padding(8.dp)
+                .clickable { onAddIconClicked() }
             )
         Icon(
             Icons.Rounded.Close,
             contentDescription = null,
             modifier = Modifier
-                        .size(60.dp)
-                        .align(Alignment.CenterEnd)
-                        .padding(8.dp)
-                        .clickable { onLogoutIconClicked() }
+                .size(60.dp)
+                .align(Alignment.CenterEnd)
+                .padding(8.dp)
+                .clickable { onLogoutIconClicked() }
         )
 
     }
 
 }
 
-@Composable
-fun Footer() {
-    Spacer(
-        modifier = Modifier
-                    .fillMaxWidth()
-                    .height(20.dp)
-    )
 
-    RadioBtnMainGroup()
-
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(20.dp)
-    )
-}
 
 @Composable
 fun ItemArticle(
     item: ArticleDto,
-    onItemClickCallback: (ArticleDto)->Unit
+    onItemClicked: (ArticleDto)->Unit
 ) {
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                onItemClickCallback.invoke(item)
+                onItemClicked(item)
             }
     ) {
         Row(
@@ -305,15 +300,38 @@ fun ItemArticle(
 }
 
 @Composable
-fun RadioBtnMainGroup() {
+fun Footer(selectedCategory: Int, onRadioSelected: (Int) -> Unit) {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp)
+    )
+
+    RadioBtnMainGroup(
+        selectedCategory,
+        onRadioSelected = { onRadioSelected(it) }
+    )
+
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp)
+    )
+}
+
+@Composable
+fun RadioBtnMainGroup(
+    selectedCategory: Int,
+    onRadioSelected: (Int) -> Unit
+) {
 
     val categories = listOf("Tout","Sport", "Manga", "Divers")
     Row(Modifier.padding(8.dp)) {
 
-        categories.forEach { category ->
+        categories.forEachIndexed { index, category ->
             RadioButton(
-                selected = false,
-                onClick = null
+                selected = selectedCategory == index,
+                onClick = { onRadioSelected(index) }
             )
             Text(
                 text = category,
