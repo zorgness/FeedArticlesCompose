@@ -49,7 +49,7 @@ fun LoginScreen(
         viewModel.messageSharedFlow.collect {message->
             when(message) {
                 LoginViewModel.LoginState.ERROR_SERVER -> R.string.error_server
-                LoginViewModel.LoginState.ERROR_AUTHORIZATION -> R.string.error_authorizarion
+                LoginViewModel.LoginState.ERROR_AUTHORIZATION -> R.string.error_authorization
                 LoginViewModel.LoginState.ERROR_CONNECTION -> R.string.error_connection
                 LoginViewModel.LoginState.WRONG_CREDENTIAL -> R.string.wrong_credential
                 LoginViewModel.LoginState.EMPTY_FIELDS -> R.string.empty_fields

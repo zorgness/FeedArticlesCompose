@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.ui.main.MainViewModel
+import com.example.feedarticlescompose.ui.register.RegisterViewModel
 import com.example.feedarticlescompose.ui.splash.SplashViewModel
 import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
 import com.example.feedarticlescompose.utils.Screen
@@ -56,7 +57,8 @@ fun AppNavigation() {
             LoginScreen(navController, loginViewModel)
         }
         composable(Screen.Register.route) {
-            RegisterScreen(navController)
+            val registerViewModel: RegisterViewModel = hiltViewModel()
+            RegisterScreen(navController, registerViewModel)
         }
         composable(Screen.Main.route) {
             val mainViewModel: MainViewModel = hiltViewModel()

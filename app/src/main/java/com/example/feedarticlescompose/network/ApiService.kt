@@ -1,15 +1,15 @@
 package com.example.feedarticlescompose.network
 
 import com.example.feedarticlescompose.dataclass.ArticleDto
+import com.example.feedarticlescompose.dataclass.RegisterDto
 import com.example.feedarticlescompose.dataclass.SessionDto
 import retrofit2.Response
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.GET
-import retrofit2.http.POST
+import retrofit2.http.*
 
 interface ApiService {
 
+    @PUT(ApiRoutes.USER)
+    suspend fun register(@Body registerDto: RegisterDto): Response<SessionDto>?
     @FormUrlEncoded
     @POST(ApiRoutes.USER)
     suspend fun login(
