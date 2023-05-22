@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 import javax.inject.Inject
 
+
 @HiltViewModel
 class FormViewModel @Inject constructor(
     private val apiService: ApiService,
@@ -62,7 +63,7 @@ class FormViewModel @Inject constructor(
         _titleStateFlow.value = title
     }
 
-    fun updateContentState(content: String) {
+    fun updateContent(content: String) {
         _contentStateFlow.value = content
     }
 

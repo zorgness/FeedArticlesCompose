@@ -54,10 +54,24 @@ class MainViewModel @Inject constructor(
 
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
-        fetchAllArticles()
+        fetchAllOrFilteredArticles()
+       // filterListArticle()
     }
 
-    fun fetchAllArticles() {
+
+    /* fun filterListArticle() {
+
+        if(selectedCategoryStateflow.value > 0) {
+            _articlesListStateFlow.value = body.articles.filter {article->
+                article.categorie == selectedCategoryStateflow.value
+            }
+        } else {
+            _articlesListStateFlow.value = body.articles
+        }
+
+    }*/
+
+    fun fetchAllOrFilteredArticles() {
 
             val headers = HashMap<String, String>()
             headers["token"] = sharedPref.getToken() ?: ""
@@ -77,6 +91,7 @@ class MainViewModel @Inject constructor(
 
                             if(body.status == "ok") {
 
+                                _articlesListStateFlow.value = body.articles
                                 if(selectedCategoryStateflow.value > 0) {
                                     _articlesListStateFlow.value = body.articles.filter {article->
                                         article.categorie == selectedCategoryStateflow.value

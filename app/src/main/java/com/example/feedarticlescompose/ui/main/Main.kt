@@ -35,102 +35,6 @@ import com.example.feedarticlescompose.R
 import com.example.feedarticlescompose.utils.Screen
 
 
-/*val articlesList = listOf(
-    ArticleDto(
-        1,
-        "test 1",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        2,
-        "test 2",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        3,
-        "test 3",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        4,
-        "test 4",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        5,
-        "test 5",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        6,
-        "test 6",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-
-    ArticleDto(
-        7,
-        "test 5",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        8,
-        "test 6",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        9,
-        "test 5",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-    ArticleDto(
-        10,
-        "test 6",
-        "dsklfjqsdkljfqldksjfqlksdjfqslkj",
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1200px-Grosser_Panda.JPG",
-        1,
-        "20/03/23",
-        1
-    ),
-)*/
-
-
-
 @Composable
 fun MainScreen(
     navController: NavHostController,
@@ -165,7 +69,7 @@ fun MainScreen(
         }
     }
 
-    viewModel.fetchAllArticles()
+    viewModel.fetchAllOrFilteredArticles()
 
     MainContent(
         selectedCategory = selectedCategory,
@@ -179,7 +83,6 @@ fun MainScreen(
         handleCategory = { position->
             viewModel.updateSelectedCategory(position)
         }
-
     )
 }
 
@@ -194,7 +97,6 @@ fun MainContent(
     handleCategory:(Int)->Unit
 
 ) {
-
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -229,7 +131,6 @@ fun MainContent(
                 selectedCategory,
                 onRadioSelected = { handleCategory(it) }
             )
-
         }
         AnimatedVisibility(
             visible = isLoading,
@@ -241,7 +142,6 @@ fun MainContent(
 
     }
 }
-
 
 
 @Composable
@@ -272,11 +172,8 @@ fun Header(
                 .padding(8.dp)
                 .clickable { onLogoutIconClicked() }
         )
-
     }
-
 }
-
 
 
 @Composable
@@ -324,9 +221,7 @@ fun ItemArticle(
                 style = TextStyle(fontWeight = FontWeight.Bold)
             )
         }
-
     }
-
 }
 
 @Composable
@@ -340,11 +235,7 @@ fun Footer(selectedCategory: Int, onRadioSelected: (Int) -> Unit) {
             selectedCategory,
             onRadioSelected = { onRadioSelected(it) }
         )
-
     }
-
-
-
 }
 
 @Composable
@@ -370,7 +261,6 @@ fun RadioBtnMainGroup(
                 color = Color.Black,
             )
         }
-
     }
 }
 

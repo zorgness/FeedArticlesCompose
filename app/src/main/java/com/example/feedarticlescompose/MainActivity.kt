@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.feedarticlescompose.ui.form.FormViewModel
 import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.ui.main.MainViewModel
 import com.example.feedarticlescompose.ui.register.RegisterViewModel
@@ -65,7 +66,8 @@ fun AppNavigation() {
             MainScreen(navController, mainViewModel)
         }
         composable(Screen.Form.route) {
-            FormScreen(navController)
+            val formViewModel: FormViewModel = hiltViewModel()
+            FormScreen(navController, formViewModel)
         }
     }
 
