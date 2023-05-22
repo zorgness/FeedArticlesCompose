@@ -6,25 +6,42 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
-import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.feedarticlescompose.R
+import com.example.feedarticlescompose.ui.splash.SplashViewModel
 import com.example.feedarticlescompose.ui.theme.BlueApp
+import com.example.feedarticlescompose.utils.Screen
 
 
 @Composable
 fun SplashScreen(
     navController: NavHostController,
+    viewModel : SplashViewModel
 ) {
+
+    // 1 SUBSCRIBE
+    LaunchedEffect(true ) {
+        viewModel.goToMainScreen.collect {
+            if(it) {
+                navController.navigate(Screen.Main.route) {
+                    popUpTo(Screen.Splash.route) {
+                        inclusive = true
+                    }
+                }
+            }
+        }
+    }
+
+    // 2 EMIT
+    viewModel.initSplash()
     SplashContent()
 }
 

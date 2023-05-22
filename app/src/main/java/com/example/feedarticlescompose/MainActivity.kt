@@ -16,12 +16,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.feedarticlescompose.ui.splash.SplashViewModel
 import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
 import com.example.feedarticlescompose.utils.Screen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,18 +48,19 @@ fun AppNavigation() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.Splash.route ) {
         composable(Screen.Splash.route) {
-            SplashScreen(navController)
+            val splashViewModel: SplashViewModel = hiltViewModel()
+            SplashScreen(navController, splashViewModel)
         }
         composable(Screen.Login.route) {
             LoginScreen(navController)
         }
-        composable(Screen.Login.route) {
+        composable(Screen.Register.route) {
             RegisterScreen(navController)
         }
-        composable(Screen.Login.route) {
+        composable(Screen.Main.route) {
             MainScreen(navController)
         }
-        composable(Screen.Login.route) {
+        composable(Screen.Form.route) {
             FormScreen(navController)
         }
     }

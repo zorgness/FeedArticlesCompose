@@ -116,10 +116,3 @@ fun RadioButtonsGroup() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    FeedArticlesComposeTheme {
-        FormContent()
-    }
-}
