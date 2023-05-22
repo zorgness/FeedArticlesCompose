@@ -54,6 +54,7 @@ class MainViewModel @Inject constructor(
 
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
+        fetchAllArticles()
     }
 
     fun fetchAllArticles() {
@@ -75,8 +76,16 @@ class MainViewModel @Inject constructor(
                         responseFetchArticles.isSuccessful && (body != null) -> {
 
                             if(body.status == "ok") {
+
+                                if(selectedCategoryStateflow.value > 0) {
+                                    _articlesListStateFlow.value = body.articles.filter {article->
+                                        article.categorie == selectedCategoryStateflow.value
+                                    }
+                                } else {
+                                    _articlesListStateFlow.value = body.articles
+                                }
                                 _isLoadingStateFlow.value = false
-                                _articlesListStateFlow.value = body.articles
+
                             }
 
                             if(body.status.contains("error"))

@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -294,7 +295,6 @@ fun ItemArticle(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.Green)
                 .border(1.dp, Color.Black)
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -306,6 +306,7 @@ fun ItemArticle(
                     .build(),
                 placeholder = painterResource(R.drawable.feedarticles_logo),
                 contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
@@ -330,22 +331,20 @@ fun ItemArticle(
 
 @Composable
 fun Footer(selectedCategory: Int, onRadioSelected: (Int) -> Unit) {
-    Spacer(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(20.dp)
-    )
+            .height(80.dp)
+    ) {
+        RadioBtnMainGroup(
+            selectedCategory,
+            onRadioSelected = { onRadioSelected(it) }
+        )
 
-    RadioBtnMainGroup(
-        selectedCategory,
-        onRadioSelected = { onRadioSelected(it) }
-    )
+    }
 
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(20.dp)
-    )
+
+
 }
 
 @Composable
@@ -355,7 +354,11 @@ fun RadioBtnMainGroup(
 ) {
 
     val categories = listOf("Tout","Sport", "Manga", "Divers")
-    Row(Modifier.padding(8.dp)) {
+    Row(
+        Modifier.padding(8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
         categories.forEachIndexed { index, category ->
             RadioButton(
@@ -365,11 +368,11 @@ fun RadioBtnMainGroup(
             Text(
                 text = category,
                 color = Color.Black,
-                modifier = Modifier.padding(horizontal = 4.dp)
-
             )
         }
 
     }
 }
+
+
 
