@@ -49,29 +49,32 @@ class MainViewModel @Inject constructor(
     private val _goToLoginSharedFlow = MutableSharedFlow<Screen>()
     val goToLoginSharedFlow = _goToLoginSharedFlow.asSharedFlow()
 
+    private val _tmpListStateFlow = MutableStateFlow(emptyList<ArticleDto>())
+
+
 
     private var message: MainState? = null
 
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
-        fetchAllOrFilteredArticles()
-       // filterListArticle()
+        fetchfilteredListArticle()
+
     }
 
 
-    /* fun filterListArticle() {
+    private fun fetchfilteredListArticle() {
 
         if(selectedCategoryStateflow.value > 0) {
-            _articlesListStateFlow.value = body.articles.filter {article->
+            _articlesListStateFlow.value = _tmpListStateFlow.value.filter {article->
                 article.categorie == selectedCategoryStateflow.value
             }
         } else {
-            _articlesListStateFlow.value = body.articles
+            _articlesListStateFlow.value = _tmpListStateFlow.value
         }
 
-    }*/
+    }
 
-    fun fetchAllOrFilteredArticles() {
+    fun fetchAllArticles() {
 
             val headers = HashMap<String, String>()
             headers["token"] = sharedPref.getToken() ?: ""
@@ -91,16 +94,9 @@ class MainViewModel @Inject constructor(
 
                             if(body.status == "ok") {
 
-                                _articlesListStateFlow.value = body.articles
-                                if(selectedCategoryStateflow.value > 0) {
-                                    _articlesListStateFlow.value = body.articles.filter {article->
-                                        article.categorie == selectedCategoryStateflow.value
-                                    }
-                                } else {
-                                    _articlesListStateFlow.value = body.articles
-                                }
+                                _tmpListStateFlow.value = body.articles
                                 _isLoadingStateFlow.value = false
-
+                                fetchfilteredListArticle()
                             }
 
                             if(body.status.contains("error"))

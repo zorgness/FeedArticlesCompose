@@ -69,7 +69,7 @@ fun MainScreen(
         }
     }
 
-    viewModel.fetchAllOrFilteredArticles()
+    viewModel.fetchAllArticles()
 
     MainContent(
         selectedCategory = selectedCategory,
