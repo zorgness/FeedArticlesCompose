@@ -49,9 +49,7 @@ class MainViewModel @Inject constructor(
     private val _goToLoginSharedFlow = MutableSharedFlow<Screen>()
     val goToLoginSharedFlow = _goToLoginSharedFlow.asSharedFlow()
 
-    private val _tmpListStateFlow = MutableStateFlow(emptyList<ArticleDto>())
-
-
+    private var tmpList = emptyList<ArticleDto>()
 
     private var message: MainState? = null
 
@@ -65,11 +63,11 @@ class MainViewModel @Inject constructor(
     private fun fetchfilteredListArticle() {
 
         if(selectedCategoryStateflow.value > 0) {
-            _articlesListStateFlow.value = _tmpListStateFlow.value.filter {article->
+            _articlesListStateFlow.value = tmpList.filter {article->
                 article.categorie == selectedCategoryStateflow.value
             }
         } else {
-            _articlesListStateFlow.value = _tmpListStateFlow.value
+            _articlesListStateFlow.value = tmpList
         }
 
     }
@@ -93,8 +91,7 @@ class MainViewModel @Inject constructor(
                         responseFetchArticles.isSuccessful && (body != null) -> {
 
                             if(body.status == "ok") {
-
-                                _tmpListStateFlow.value = body.articles
+                                tmpList = body.articles
                                 _isLoadingStateFlow.value = false
                                 fetchfilteredListArticle()
                             }
