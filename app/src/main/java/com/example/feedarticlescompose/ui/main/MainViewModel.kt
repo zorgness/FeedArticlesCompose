@@ -49,6 +49,9 @@ class MainViewModel @Inject constructor(
     private val _goToLoginSharedFlow = MutableSharedFlow<Screen>()
     val goToLoginSharedFlow = _goToLoginSharedFlow.asSharedFlow()
 
+    private val _goToEditSharedFlow = MutableSharedFlow<String>()
+    val goToEditSharedFlow = _goToEditSharedFlow.asSharedFlow()
+
     private var tmpList = emptyList<ArticleDto>()
 
     private var message: MainState? = null
@@ -56,19 +59,25 @@ class MainViewModel @Inject constructor(
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
         fetchfilteredListArticle()
+    }
 
+    fun updateItemClicked(item: ArticleDto) {
+        if(item.idU == sharedPref.getUserId()) {
+            viewModelScope.launch {
+                _goToEditSharedFlow.emit(Screen.Edit.route + "/${item.id}")
+            }
+        }
     }
 
 
     private fun fetchfilteredListArticle() {
 
         if(selectedCategoryStateflow.value > 0) {
-            _articlesListStateFlow.value = tmpList.filter {article->
+            _articlesListStateFlow.value = tmpList.filter { article->
                 article.categorie == selectedCategoryStateflow.value
             }
-        } else {
+        } else
             _articlesListStateFlow.value = tmpList
-        }
 
     }
 

@@ -1,7 +1,8 @@
-const val SHAREDPREF_NAME = "feedarticle"
+const val SHAREDPREF_NAME = "feedarticleCompose"
 const val SHAREDPREF_SESSION_TOKEN = "session token"
 const val SHAREDPREF_SESSION_USER_ID = "session user id"
 
+const val TOKEN = "token"
 const val CODE_200 = 200
 const val CODE_201 = 201
 const val CODE_204 = 204

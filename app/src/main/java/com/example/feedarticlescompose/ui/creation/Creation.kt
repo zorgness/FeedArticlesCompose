@@ -1,6 +1,5 @@
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
-import androidx.compose.material.FabPosition
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -13,23 +12,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.R
-import com.example.feedarticlescompose.ui.form.FormViewModel
-import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
-import kotlinx.coroutines.flow.collect
-import java.util.Locale.Category
+import com.example.feedarticlescompose.ui.creation.CreationViewModel
 
 
 @Composable
-fun FormScreen(
+fun CreationScreen(
     navController: NavHostController,
-    viewModel: FormViewModel
+    viewModel: CreationViewModel
 ) {
     val title by viewModel.titleStateFlow.collectAsState()
     val content by viewModel.contentStateFlow.collectAsState()
@@ -46,19 +41,19 @@ fun FormScreen(
     LaunchedEffect(true ) {
         viewModel.messageSharedFlow.collect { message ->
             when(message) {
-                FormViewModel.FormState.SUCCESS -> R.string.new_success
-                FormViewModel.FormState.ERROR_PARAM -> R.string.error_param
-                FormViewModel.FormState.ERROR_SERVER -> R.string.error_server
-                FormViewModel.FormState.ERROR_CONNECTION -> R.string.error_connection
-                FormViewModel.FormState.ERROR_AUTHORIZATION -> R.string.error_authorization
-                FormViewModel.FormState.EMPTY_FIELDS -> R.string.empty_fields
-                FormViewModel.FormState.ERROR_TITLE -> R.string.error_title
-                FormViewModel.FormState.FAILURE -> R.string.new_failure
+                CreationViewModel.CreationState.SUCCESS -> R.string.new_success
+                CreationViewModel.CreationState.ERROR_PARAM -> R.string.error_param
+                CreationViewModel.CreationState.ERROR_SERVER -> R.string.error_server
+                CreationViewModel.CreationState.ERROR_CONNECTION -> R.string.error_connection
+                CreationViewModel.CreationState.ERROR_AUTHORIZATION -> R.string.error_authorization
+                CreationViewModel.CreationState.EMPTY_FIELDS -> R.string.empty_fields
+                CreationViewModel.CreationState.ERROR_TITLE -> R.string.error_title
+                CreationViewModel.CreationState.FAILURE -> R.string.new_failure
             }
         }
     }
 
-    FormContent(
+    CreationContent(
         title,
         content,
         imageUrl,
@@ -73,7 +68,7 @@ fun FormScreen(
 }
 
 @Composable
-fun FormContent(
+fun CreationContent(
     title: String,
     content: String,
     imageUrl: String,
@@ -108,7 +103,7 @@ fun FormContent(
             placeholder = "Contenu" ,
             value = content,
             handleValue = { handleContent(it) },
-            customHeight = 80
+            customHeight = 120
         )
         CustomTextField(
             placeholder = "Image URL" ,

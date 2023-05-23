@@ -55,6 +55,12 @@ fun MainScreen(
         }
     }
 
+    LaunchedEffect(true ) {
+        viewModel.goToEditSharedFlow.collect {route->
+            navController.navigate(route)
+        }
+    }
+
     LaunchedEffect(true){
         viewModel.messageSharedFlow.collect { message ->
             when (message) {
@@ -75,9 +81,9 @@ fun MainScreen(
         selectedCategory = selectedCategory,
         articlesList = articlesList,
         isLoading = isLoading,
-        handleItemClicked = {},
+        handleItemClicked = { viewModel.updateItemClicked(it) },
         goToNewArticle = {
-            navController.navigate(Screen.Form.route)
+            navController.navigate(Screen.Creation.route)
         },
         handleLogout = { viewModel.logout() },
         handleCategory = { position->

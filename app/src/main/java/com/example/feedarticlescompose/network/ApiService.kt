@@ -28,14 +28,13 @@ interface ApiService {
         @HeaderMap headers: Map<String, String>,
     ): Response<StatusDto>?
 
-/*    @GET(ApiRoutes.ARTICLES)
-    suspend fun getArticleById(
+ @GET(ApiRoutes.ARTICLES)
+    suspend fun fetchArticleById(
         @HeaderMap headers: Map<String, String>,
         @Query("id") articleId: Long,
-        @Query("with_fav") withFav: Int?
     ): Response<GetArticleDto>?
 
-    @POST(ApiRoutes.ARTICLES)
+ /*   @POST(ApiRoutes.ARTICLES)
     suspend fun updateArticle(
         @Query("id") articleId: Long,
         @HeaderMap headers: Map<String, String>,

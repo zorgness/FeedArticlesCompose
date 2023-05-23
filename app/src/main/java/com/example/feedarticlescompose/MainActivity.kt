@@ -1,6 +1,7 @@
 package com.example.feedarticlescompose
 
-import FormScreen
+import CreationScreen
+import EditScreen
 import LoginScreen
 import com.example.feedarticlescompose.ui.main.MainScreen
 import RegisterScreen
@@ -15,10 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.feedarticlescompose.ui.form.FormViewModel
+import androidx.navigation.navArgument
+import com.example.feedarticlescompose.ui.creation.CreationViewModel
+import com.example.feedarticlescompose.ui.edit.EditViewModel
 import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.ui.main.MainViewModel
 import com.example.feedarticlescompose.ui.register.RegisterViewModel
@@ -65,9 +69,21 @@ fun AppNavigation() {
             val mainViewModel: MainViewModel = hiltViewModel()
             MainScreen(navController, mainViewModel)
         }
-        composable(Screen.Form.route) {
-            val formViewModel: FormViewModel = hiltViewModel()
-            FormScreen(navController, formViewModel)
+        composable(Screen.Creation.route) {
+            val creationViewModel: CreationViewModel = hiltViewModel()
+            CreationScreen(navController, creationViewModel)
+        }
+        composable(
+            Screen.Edit.route + "/{articleId}",
+            arguments = listOf(
+                navArgument("articleId") {
+                    type = NavType.LongType
+                }
+            )
+        ) {
+            val editViewModel: EditViewModel = hiltViewModel()
+            val articleId = it.arguments?.getLong("articleId") ?: 0L
+            EditScreen(navController, editViewModel, articleId)
         }
     }
 

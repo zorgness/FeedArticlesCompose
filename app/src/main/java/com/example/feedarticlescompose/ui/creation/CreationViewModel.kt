@@ -1,10 +1,9 @@
-package com.example.feedarticlescompose.ui.form
+package com.example.feedarticlescompose.ui.creation
 
 import ERROR_401
 import ERROR_403
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.dataclass.NewArticleDto
 import com.example.feedarticlescompose.dataclass.StatusDto
 import com.example.feedarticlescompose.extensions.is80charactersMax
@@ -24,12 +23,12 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class FormViewModel @Inject constructor(
+class CreationViewModel @Inject constructor(
     private val apiService: ApiService,
     private val sharedPref: MySharedPref
 ): ViewModel() {
 
-    enum class FormState {
+    enum class CreationState {
         ERROR_SERVER,
         ERROR_CONNECTION,
         ERROR_AUTHORIZATION,
@@ -52,7 +51,7 @@ class FormViewModel @Inject constructor(
     private val _selectedCategoryStateflow = MutableStateFlow<Int>(2)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
-    private val _messageSharedFlow = MutableSharedFlow<FormState>()
+    private val _messageSharedFlow = MutableSharedFlow<CreationState>()
     val messageSharedFlow = _messageSharedFlow.asSharedFlow()
 
     private val _goToMainScreen = MutableSharedFlow<Screen>()
@@ -75,7 +74,7 @@ class FormViewModel @Inject constructor(
         _selectedCategoryStateflow.value = position
     }
 
-    private var message: FormState? = null
+    private var message: CreationState? = null
     private val headers = HashMap<String, String>()
 
     fun newArticle() {
@@ -112,32 +111,32 @@ class FormViewModel @Inject constructor(
 
                         when {
                             responseNewArticle?.body() == null ->
-                                message = FormState.ERROR_SERVER
+                                message = CreationState.ERROR_SERVER
 
                             responseNewArticle.isSuccessful && (body != null) -> {
-                                message = FormState.SUCCESS
+                                message = CreationState.SUCCESS
                                 _goToMainScreen.emit(Screen.Main)
                             }
 
                             responseNewArticle.code() == ERROR_401 ->
-                                message = FormState.ERROR_PARAM
+                                message = CreationState.ERROR_PARAM
 
                             responseNewArticle.code() == ERROR_403 ->
-                                message = FormState.ERROR_AUTHORIZATION
+                                message = CreationState.ERROR_AUTHORIZATION
                         }
 
                     }
 
                 } catch (e: Exception) {
-                    message = FormState.ERROR_CONNECTION
+                    message = CreationState.ERROR_CONNECTION
                 }
 
             } else {
-                message = FormState.ERROR_TITLE
+                message = CreationState.ERROR_TITLE
             }
 
         } else {
-            message = FormState.EMPTY_FIELDS
+            message = CreationState.EMPTY_FIELDS
         }
     }
 
