@@ -170,7 +170,7 @@ fun Header(
                 .clickable { onAddIconClicked() }
             )
         Icon(
-            Icons.Rounded.Close,
+            Icons.Outlined.ExitToApp,
             contentDescription = null,
             modifier = Modifier
                 .size(60.dp)

@@ -34,6 +34,12 @@ fun EditScreen(
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
 
     LaunchedEffect(true) {
+        viewModel.articleIdSharedFlow.collect {
+            viewModel.fetchArticle(it)
+        }
+    }
+
+    LaunchedEffect(true) {
         viewModel.goToMainScreen.collect {
             navController.navigate(it.route) {
                 popUpTo(it.route) {
@@ -44,22 +50,22 @@ fun EditScreen(
     }
 
 
-/*    LaunchedEffect(true ) {
+     LaunchedEffect(true ) {
         viewModel.messageSharedFlow.collect { message ->
             when(message) {
-                CreationViewModel.CreationState.SUCCESS -> R.string.new_success
-                CreationViewModel.CreationState.ERROR_PARAM -> R.string.error_param
-                CreationViewModel.CreationState.ERROR_SERVER -> R.string.error_server
-                CreationViewModel.CreationState.ERROR_CONNECTION -> R.string.error_connection
-                CreationViewModel.CreationState.ERROR_AUTHORIZATION -> R.string.error_authorization
-                CreationViewModel.CreationState.EMPTY_FIELDS -> R.string.empty_fields
-                CreationViewModel.CreationState.ERROR_TITLE -> R.string.error_title
-                CreationViewModel.CreationState.FAILURE -> R.string.new_failure
+                EditViewModel.EditState.SUCCESS -> R.string.new_success
+                EditViewModel.EditState.ERROR_PARAM -> R.string.error_param
+                EditViewModel.EditState.ERROR_SERVER -> R.string.error_server
+                EditViewModel.EditState.ERROR_CONNECTION -> R.string.error_connection
+                EditViewModel.EditState.ERROR_AUTHORIZATION -> R.string.error_authorization
+                EditViewModel.EditState.EMPTY_FIELDS -> R.string.empty_fields
+                EditViewModel.EditState.ERROR_TITLE -> R.string.error_title
+                EditViewModel.EditState.FAILURE -> R.string.new_failure
             }
         }
-    }*/
+    }
 
-    viewModel.fetchArticle(articleId)
+    viewModel.updateArticleId(articleId)
 
     EditContent(
         title,
@@ -70,7 +76,7 @@ fun EditScreen(
         handleContent = { viewModel.updateContent(it) },
         handleImageUrl = { viewModel.updateImageUrl(it) },
         handleCategoryPosition = { viewModel.updateSelectedCategory(it)},
-        handleClick = {}
+        handleClick = { viewModel.editArticle() }
 
     )
 }

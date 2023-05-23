@@ -34,14 +34,13 @@ interface ApiService {
         @Query("id") articleId: Long,
     ): Response<GetArticleDto>?
 
- /*   @POST(ApiRoutes.ARTICLES)
+ @POST(ApiRoutes.ARTICLES)
     suspend fun updateArticle(
         @Query("id") articleId: Long,
         @HeaderMap headers: Map<String, String>,
         @Body updateArticleDto: UpdateArticleDto
 
-
-    ): Response<StatusDto>?*/
+    ): Response<StatusDto>?
 
     @DELETE(ApiRoutes.ARTICLES)
     suspend fun deleteArticle(
