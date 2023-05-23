@@ -103,10 +103,12 @@ fun FormContent(
             value = title,
             handleValue = { handleTitle(it) }
         )
+
         CustomTextField(
             placeholder = "Contenu" ,
             value = content,
-            handleValue = { handleContent(it) }
+            handleValue = { handleContent(it) },
+            customHeight = 80
         )
         CustomTextField(
             placeholder = "Image URL" ,
@@ -154,7 +156,11 @@ fun RadioButtonsGroup(
 ) {
 
     val categories = listOf("Sport", "Manga", "Divers")
-    Row(Modifier.padding(8.dp)) {
+    Row(
+        Modifier.padding(8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
         categories.forEachIndexed { index, category ->
                 RadioButton(
@@ -163,9 +169,7 @@ fun RadioButtonsGroup(
                 )
                 Text(
                     text = category,
-                    color = Color.Black,
-                    modifier = Modifier.padding(start = 8.dp)
-
+                    color = Color.Black
                 )
         }
 

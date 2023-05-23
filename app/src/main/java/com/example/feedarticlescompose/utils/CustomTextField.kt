@@ -1,6 +1,8 @@
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
@@ -19,17 +21,18 @@ fun CustomTextField(
     placeholder: String?,
     value: String,
     handleValue: (String) -> Unit,
-
+    customHeight: Int = 20
     ){
 
     var isFocus by remember { mutableStateOf(true) }
 
     BasicTextField(
         value = value,
-       textStyle= TextStyle(
+        textStyle= TextStyle(
             color = BlueApp
         ),
         modifier = Modifier
+            .height(customHeight.dp)
             .onFocusChanged {
                 isFocus = !isFocus
             },
@@ -50,14 +53,10 @@ fun CustomTextField(
                 if (value.isEmpty()) {
                     Text(
                         text = placeholder ?: "",
-                        //color = Color.Gray
                     )
                 } else {
-                    val scroll = rememberScrollState(0)
                     Text(
-                        modifier = Modifier.horizontalScroll(scroll),
                         text =  value,
-                        //color = Color.Black
                     )
                 }
 
