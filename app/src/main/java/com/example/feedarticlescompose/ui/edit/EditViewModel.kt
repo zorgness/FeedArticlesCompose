@@ -62,8 +62,8 @@ class EditViewModel @Inject constructor(
     private val _messageSharedFlow = MutableSharedFlow<EditState>()
     val messageSharedFlow = _messageSharedFlow.asSharedFlow()
 
-    private val _articleIdSharedFlow = MutableSharedFlow<Long>()
-    val articleIdSharedFlow = _articleIdSharedFlow.asSharedFlow()
+    private val _fetchArticleSharedFlow = MutableSharedFlow<Long>()
+    val fetchArticleSharedFlow = _fetchArticleSharedFlow.asSharedFlow()
 
     private val _goToMainScreen = MutableSharedFlow<Screen>()
     val goToMainScreen = _goToMainScreen.asSharedFlow()
@@ -73,7 +73,7 @@ class EditViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _articleIdSharedFlow.emit(articleIdStateFlow.value)
+            _fetchArticleSharedFlow.emit(articleIdStateFlow.value)
         }
     }
 

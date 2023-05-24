@@ -32,6 +32,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
+import com.example.feedarticlescompose.utils.Category
 import com.example.feedarticlescompose.utils.Screen
 
 
@@ -198,6 +199,7 @@ fun ItemArticle(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Category.getColor(item.categorie))
                 .border(1.dp, Color.Black)
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically

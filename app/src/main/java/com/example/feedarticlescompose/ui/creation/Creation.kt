@@ -118,14 +118,12 @@ fun CreationContent(
                 .build(),
             contentDescription = null,
             placeholder = painterResource(id = R.drawable.feedarticles_logo),
-            /*onSuccess = { isVisible = true },
-            onError = { isVisible = false },*/
             modifier = Modifier
                 .size(80.dp)
 
         )
 
-        RadioButtonsGroup(
+        RadioButtonsCreationGroup(
             selectedCategory,
             onRadioSelected = { handleCategoryPosition(it) }
         )
@@ -145,7 +143,7 @@ fun CreationContent(
 }
 
 @Composable
-fun RadioButtonsGroup(
+fun RadioButtonsCreationGroup(
     selectedCategory: Int,
     onRadioSelected: (Int) -> Unit
 ) {

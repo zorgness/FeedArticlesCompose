@@ -34,7 +34,7 @@ fun EditScreen(
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
 
     LaunchedEffect(true) {
-        viewModel.articleIdSharedFlow.collect {
+        viewModel.fetchArticleSharedFlow.collect {
             viewModel.fetchArticle(it)
         }
     }
