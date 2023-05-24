@@ -9,7 +9,6 @@ import USER_TOKEN
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
-import com.example.feedarticlescompose.dataclass.StatusDto
 import com.example.feedarticlescompose.network.ApiService
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen

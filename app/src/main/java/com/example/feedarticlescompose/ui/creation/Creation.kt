@@ -35,7 +35,11 @@ fun CreationScreen(
 
     LaunchedEffect(true) {
         viewModel.goToMainScreen.collect {
-            navController.navigate(it.route)
+            navController.navigate(it.route) {
+                popUpTo(it.route) {
+                    inclusive = true
+                }
+            }
         }
     }
 

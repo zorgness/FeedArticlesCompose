@@ -1,11 +1,8 @@
 package com.example.feedarticlescompose.ui.creation
 
-import ERROR_401
-import ERROR_403
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.NewArticleDto
-import com.example.feedarticlescompose.dataclass.StatusDto
 import com.example.feedarticlescompose.extensions.is80charactersMax
 import com.example.feedarticlescompose.network.ApiService
 import com.example.feedarticlescompose.utils.MySharedPref

@@ -2,18 +2,14 @@ package com.example.feedarticlescompose.ui.edit
 
 import ERROR_400
 import ERROR_401
-import ERROR_403
 import ERROR_503
 import HTTP_201
 import HTTP_303
 import HTTP_304
 import USER_TOKEN
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
-import com.example.feedarticlescompose.dataclass.GetArticleDto
-import com.example.feedarticlescompose.dataclass.StatusDto
 import com.example.feedarticlescompose.dataclass.UpdateArticleDto
 import com.example.feedarticlescompose.extensions.is80charactersMax
 import com.example.feedarticlescompose.network.ApiService
