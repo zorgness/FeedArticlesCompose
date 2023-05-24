@@ -1,3 +1,7 @@
+package com.example.feedarticlescompose.ui.edit
+
+import CustomTextField
+import RadioButtonsNewEditGroup
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -19,7 +23,6 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.R
-import com.example.feedarticlescompose.ui.edit.EditViewModel
 
 
 @Composable
@@ -33,12 +36,6 @@ fun EditScreen(
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
     val context = LocalContext.current
 
-    /*LaunchedEffect(true) {
-        viewModel.fetchArticleSharedFlow.collect {
-            viewModel.fetchArticle(it)
-        }
-    }*/
-
     LaunchedEffect(true) {
         viewModel.goToMainScreen.collect {
             navController.navigate(it.route) {
@@ -50,11 +47,11 @@ fun EditScreen(
     }
 
 
-     LaunchedEffect(true ) {
+    LaunchedEffect(true ) {
          viewModel.editStateSharedFlow.collect { state ->
              when(state) {
-                 EditViewModel.EditState.SUCCESS -> R.string.new_success
-                 EditViewModel.EditState.FAILURE -> R.string.new_failure
+                 EditViewModel.EditState.SUCCESS -> R.string.update_success
+                 EditViewModel.EditState.FAILURE -> R.string.update_failure
                  EditViewModel.EditState.ERROR_PARAM -> R.string.error_param
                  EditViewModel.EditState.ERROR_SERVER -> R.string.error_server
                  EditViewModel.EditState.ERROR_CONNECTION -> R.string.error_connection
@@ -64,7 +61,7 @@ fun EditScreen(
                  EditViewModel.EditState.WRONG_ID_PATH -> R.string.wrong_id_path
                  EditViewModel.EditState.ERROR_AUTHORIZATION -> R.string.error_authorization
              }.let {
-                Toast.makeText(context , it, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -79,12 +76,10 @@ fun EditScreen(
                 EditViewModel.FetchState.ERROR_PARAM -> R.string.error_param
                 EditViewModel.FetchState.ERROR_SERVICE -> R.string.error_service
             }.let {
-                Toast.makeText(context , it, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
         }
     }
-
-
 
     EditContent(
         context = context,
@@ -97,7 +92,6 @@ fun EditScreen(
         handleImageUrl = { viewModel.updateImageUrl(it) },
         handleCategoryPosition = { viewModel.updateSelectedCategory(it)},
         handleClick = { viewModel.editArticle() }
-
     )
 }
 
@@ -130,7 +124,7 @@ fun EditContent(
         )
 
         CustomTextField(
-            placeholder = context.getString(R.string.title) ,
+            placeholder = context.getString(R.string.title),
             value = title,
             handleValue = { handleTitle(it) }
         )
@@ -142,7 +136,7 @@ fun EditContent(
             customHeight = 120
         )
         CustomTextField(
-            placeholder =  context.getString(R.string.image_url),
+            placeholder = context.getString(R.string.image_url),
             value = imageUrl,
             handleValue = { handleImageUrl(it) }
         )

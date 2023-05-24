@@ -7,6 +7,7 @@ import HTTP_201
 import HTTP_303
 import HTTP_304
 import USER_TOKEN
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
@@ -54,9 +55,6 @@ class EditViewModel @Inject constructor(
         ERROR_SERVICE
     }
 
-    private val _articleIdStateFlow = MutableStateFlow(0L)
-    val articleIdStateFlow = _articleIdStateFlow.asStateFlow()
-
     private val _titleStateFlow = MutableStateFlow("")
     val titleStateFlow = _titleStateFlow.asStateFlow()
 
@@ -66,7 +64,7 @@ class EditViewModel @Inject constructor(
     private val _imageUrlStateFlow = MutableStateFlow("")
     val imageUrlStateFlow = _imageUrlStateFlow.asStateFlow()
 
-    private val _selectedCategoryStateflow = MutableStateFlow<Int>(2)
+    private val _selectedCategoryStateflow = MutableStateFlow(2)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
     private val _editStateSharedFlow = MutableSharedFlow<EditState>()
@@ -75,8 +73,6 @@ class EditViewModel @Inject constructor(
     private val _fetchStateSharedFlow = MutableSharedFlow<FetchState>()
     val fetchStateSharedFlow = _fetchStateSharedFlow.asSharedFlow()
 
-    private val _fetchArticleSharedFlow = MutableSharedFlow<Long>()
-    val fetchArticleSharedFlow = _fetchArticleSharedFlow.asSharedFlow()
 
     private val _goToMainScreen = MutableSharedFlow<Screen>()
     val goToMainScreen = _goToMainScreen.asSharedFlow()
@@ -84,10 +80,11 @@ class EditViewModel @Inject constructor(
     private var editState: EditState? = null
     private var fetchState: FetchState? = null
     private val headers = HashMap<String, String>()
+    private var articleIdToUpdate: Long? = null
 
 
     fun updateArticleIdAndFetch(articleId: Long) {
-       _articleIdStateFlow.value = articleId
+        articleIdToUpdate = articleId
         fetchArticle(articleId)
     }
     fun updateTitle(title: String) {
@@ -109,6 +106,8 @@ class EditViewModel @Inject constructor(
 
     fun editArticle() {
 
+        Log.d("edit", "edit $articleIdToUpdate")
+
         headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
         if(
@@ -126,10 +125,10 @@ class EditViewModel @Inject constructor(
 
                         val responseEditArticle: Response<Unit>? = withContext(Dispatchers.IO) {
                             apiService.updateArticle(
-                                articleId = articleIdStateFlow.value,
+                                articleId = articleIdToUpdate ?: 0L,
                                 headers = headers,
                                 UpdateArticleDto(
-                                    id = sharedPref.getUserId(),
+                                    id = articleIdToUpdate ?: 0L,
                                     title = titleStateFlow.value,
                                     desc = contentStateFlow.value,
                                     image = imageUrlStateFlow.value,
@@ -138,14 +137,12 @@ class EditViewModel @Inject constructor(
                             )
                         }
 
-                        val body = responseEditArticle?.body()
 
-                        when {
+                       when {
                             responseEditArticle == null ->
                                 editState = EditState.ERROR_SERVER
 
-                            responseEditArticle.isSuccessful && (body != null) -> {
-                                editState = EditState.SUCCESS
+                            responseEditArticle.isSuccessful -> {
                                 _goToMainScreen.emit(Screen.Main)
                             }
                         }
@@ -157,6 +154,9 @@ class EditViewModel @Inject constructor(
                             ERROR_400 -> EditState.ERROR_PARAM
                             ERROR_401 -> EditState.ERROR_AUTHORIZATION
                             ERROR_503 -> EditState.ERROR_SERVICE
+                            else -> null
+                        }.let {
+                            editState = it
                         }
                     }
 
@@ -178,9 +178,7 @@ class EditViewModel @Inject constructor(
 
     }
 
-    fun fetchArticle(articleId: Long) {
-
-       // _articleIdStateFlow.value = articleId
+    private fun fetchArticle(articleId: Long) {
 
         headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
@@ -193,7 +191,7 @@ class EditViewModel @Inject constructor(
                 val body = responseFetchArticle?.body()
 
                 when {
-                    responseFetchArticle?.body() == null ->
+                    responseFetchArticle == null ->
                         fetchState = FetchState.ERROR_SERVER
 
                     responseFetchArticle.isSuccessful && (body != null) -> {
@@ -204,7 +202,6 @@ class EditViewModel @Inject constructor(
                            updateSelectedCategory(categorie.minus(1))
                         }
                     }
-
                }
 
                when(responseFetchArticle?.code()) {

@@ -1,7 +1,7 @@
 package com.example.feedarticlescompose
 
 import CreationScreen
-import EditScreen
+import com.example.feedarticlescompose.ui.edit.EditScreen
 import LoginScreen
 import com.example.feedarticlescompose.ui.main.MainScreen
 import RegisterScreen
@@ -15,7 +15,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -89,16 +88,5 @@ fun AppNavigation() {
             editViewModel.updateArticleIdAndFetch(articleId)
             EditScreen(navController, editViewModel)
         }
-    }
-
-
-
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    FeedArticlesComposeTheme {
-
     }
 }

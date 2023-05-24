@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">FeedArticlesCompose</string>
 
-
     <!--ERROR_NETWORK-->
     <string name="error_server">erreur serveur</string>
     <string name="error_authorization">probléme d\'autorisation</string>
@@ -10,16 +9,13 @@
     <string name="error_service">service indisponible</string>
 
     <!--LOGIN REGISTER-->
-    <string name="wrong_credential">mauvais login ou mot de passe</string>
+    <string name="wrong_credentials">mauvais login ou mot de passe</string>
     <string name="empty_fields">tous les champs doivent être remplis</string>
     <string name="error_confirmation">mot de passe différents de confirmation</string>
     <string name="account_failed">nouveau compte non créé</string>
     <string name="account_success">nouveau compte ajouté</string>
     <string name="login_used">login déjà utilisé</string>
     <string name="security_failure">probléme de sécurité, déconnectez-vous!!!</string>
-    <string name="no_account_yet">Pas de compte ? inscrivez-vous !</string>
-    <string name="connect">Se connecter</string>
-
 
     <string name="new_account">Nouveau compte</string>
     <string name="log_to_account">Connectez-vous</string>
@@ -27,10 +23,11 @@
     <string name="password">Password</string>
     <string name="confirm_password">Confirmation Password</string>
     <string name="btn_register">S\'inscrire</string>
+    <string name="no_account_yet">Pas de compte ? inscrivez-vous !</string>
+    <string name="connect">Se connecter</string>
 
 
     <!--NEW EDIT ARTICLE-->
-
     <string name="new_article">Nouvel Article</string>
     <string name="edit_article">Edition Article</string>
     <string name="title">Titre</string>
@@ -39,11 +36,14 @@
     <string name="save">Enregister</string>
     <string name="update">Mise à jour</string>
     <string name="new_success">article ajouté</string>
-    <string name="new_failure">pas de création</string>
+    <string name="update_success">article modifié</string>
+    <string name="new_failure">article non ajouté</string>
+    <string name="update_failure">pas de modification</string>
     <string name="error_title">80 caractéres maximum pour le titre</string>
     <string name="unknow_user">utilisateur inconnu</string>
     <string name="unknow_article">article introuvable</string>
     <string name="wrong_id_path">les ids (path et dto) sont différents</string>
+
 
     <!--DELETE ARTICLE-->
     <string name="delete_success">article supprimé</string>

@@ -46,7 +46,7 @@ fun LoginScreen(
             when(state) {
                 LoginViewModel.LoginState.ERROR_SERVER -> R.string.error_server
                 LoginViewModel.LoginState.ERROR_CONNECTION -> R.string.error_connection
-                LoginViewModel.LoginState.WRONG_CREDENTIAL -> R.string.wrong_credential
+                LoginViewModel.LoginState.WRONG_CREDENTIAL -> R.string.wrong_credentials
                 LoginViewModel.LoginState.EMPTY_FIELDS -> R.string.empty_fields
                 LoginViewModel.LoginState.SECURITY_FAILURE -> R.string.security_failure
                 LoginViewModel.LoginState.ERROR_PARAM -> R.string.error_param
