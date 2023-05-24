@@ -55,6 +55,9 @@ class EditViewModel @Inject constructor(
         ERROR_SERVICE
     }
 
+    /*
+    *  KEEP TRACK OF EACH FIELDS
+    */
     private val _titleStateFlow = MutableStateFlow("")
     val titleStateFlow = _titleStateFlow.asStateFlow()
 
@@ -67,13 +70,18 @@ class EditViewModel @Inject constructor(
     private val _selectedCategoryStateflow = MutableStateFlow(2)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
+    /*
+    *  KEEP TRACK OF REQUEST STATE
+    */
     private val _editStateSharedFlow = MutableSharedFlow<EditState>()
     val editStateSharedFlow = _editStateSharedFlow.asSharedFlow()
 
     private val _fetchStateSharedFlow = MutableSharedFlow<FetchState>()
     val fetchStateSharedFlow = _fetchStateSharedFlow.asSharedFlow()
 
-
+    /*
+    *  REDIRECTION AFTER UPDATE
+    */
     private val _goToMainScreen = MutableSharedFlow<Screen>()
     val goToMainScreen = _goToMainScreen.asSharedFlow()
 
@@ -105,8 +113,6 @@ class EditViewModel @Inject constructor(
 
 
     fun editArticle() {
-
-        Log.d("edit", "edit $articleIdToUpdate")
 
         headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 

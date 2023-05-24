@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,8 +45,8 @@ fun CreationScreen(
 
 
     LaunchedEffect(true ) {
-        viewModel.messageSharedFlow.collect { message ->
-            when(message) {
+        viewModel.creattionStateSharedFlow.collect { state ->
+            when(state) {
                 CreationViewModel.CreationState.SUCCESS -> R.string.new_success
                 CreationViewModel.CreationState.ERROR_PARAM -> R.string.error_param
                 CreationViewModel.CreationState.ERROR_SERVER -> R.string.error_server

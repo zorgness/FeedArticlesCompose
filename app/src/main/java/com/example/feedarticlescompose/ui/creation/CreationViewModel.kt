@@ -36,6 +36,9 @@ class CreationViewModel @Inject constructor(
         SUCCESS
     }
 
+    /*
+    *  KEEP TRACK OF EACH FIELDS
+    */
     private val _titleStateFlow = MutableStateFlow("")
     val titleStateFlow = _titleStateFlow.asStateFlow()
 
@@ -48,9 +51,15 @@ class CreationViewModel @Inject constructor(
     private val _selectedCategoryStateflow = MutableStateFlow<Int>(2)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
-    private val _messageSharedFlow = MutableSharedFlow<CreationState>()
-    val messageSharedFlow = _messageSharedFlow.asSharedFlow()
+    /*
+    *  KEEP TRACK OF REQUEST STATE
+    */
+    private val _creationStateSharedFlow = MutableSharedFlow<CreationState>()
+    val creattionStateSharedFlow = _creationStateSharedFlow.asSharedFlow()
 
+    /*
+    *  REDIRECTION TO MAIN AFTER INSERT
+    */
     private val _goToMainScreen = MutableSharedFlow<Screen>()
     val goToMainScreen = _goToMainScreen.asSharedFlow()
 
@@ -71,7 +80,7 @@ class CreationViewModel @Inject constructor(
         _selectedCategoryStateflow.value = position
     }
 
-    private var message: CreationState? = null
+    private var creationState: CreationState? = null
     private val headers = HashMap<String, String>()
 
     fun newArticle() {
@@ -108,10 +117,10 @@ class CreationViewModel @Inject constructor(
 
                         when {
                             responseNewArticle == null ->
-                                message = CreationState.ERROR_SERVER
+                                creationState = CreationState.ERROR_SERVER
 
                             responseNewArticle.isSuccessful && (body != null) -> {
-                                message = CreationState.SUCCESS
+                                creationState = CreationState.SUCCESS
                                 _goToMainScreen.emit(Screen.Main)
                             }
 
@@ -121,20 +130,20 @@ class CreationViewModel @Inject constructor(
                     }
 
                 } catch (e: Exception) {
-                    message = CreationState.ERROR_CONNECTION
+                    creationState = CreationState.ERROR_CONNECTION
                 }
 
             } else {
-                message = CreationState.ERROR_TITLE
+                creationState = CreationState.ERROR_TITLE
             }
 
         } else {
-            message = CreationState.EMPTY_FIELDS
+            creationState = CreationState.EMPTY_FIELDS
         }
 
-        message?.let {
+        creationState?.let {
             viewModelScope.launch {
-                _messageSharedFlow.emit(it)
+                _creationStateSharedFlow.emit(it)
             }
         }
     }

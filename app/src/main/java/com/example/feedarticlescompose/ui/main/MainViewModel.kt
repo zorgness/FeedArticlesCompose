@@ -48,30 +48,52 @@ class MainViewModel @Inject constructor(
         ERROR_PARAM
     }
 
+    /*
+    *  KEEP TRACK OF CURRENT USER
+    */
     private val _currentUserIdStateflow = MutableStateFlow(sharedPref.getUserId())
     val currentUserIdStateflow = _currentUserIdStateflow.asStateFlow()
-
+    /*
+    *  SHOW PROGRESS BAR ON LOADING
+    */
     private val _isLoadingStateFlow = MutableStateFlow(true)
     val isLoadingStateFlow = _isLoadingStateFlow.asStateFlow()
 
+    /*
+    *  STATE FOR SWIPE REFRESH
+    */
     private val _isRefreshingStateFlow = MutableStateFlow(false)
     val isRefreshingStateFlow = _isRefreshingStateFlow.asStateFlow()
 
+    /*
+    *  ID OF ARTICLE TO EXPAND
+    */
     private val _expandedIdStateFlow = MutableStateFlow(0L)
     val expandedIdStateFlow = _expandedIdStateFlow.asStateFlow()
-
+    /*
+    *  SELECTED CATEGORY FOR FILTER
+    */
     private val _selectedCategoryStateflow = MutableStateFlow<Int>(0)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
+    /*
+    *  LIST SHOW ON SCREEN
+    */
     private val _articlesToShowStateFlow = MutableStateFlow(emptyList<ArticleDto>())
     val articlesToShowStateFlow = _articlesToShowStateFlow.asStateFlow()
 
+    /*
+     *  KEEP TRACK OF REQUEST STATE
+    */
     private val _mainStateSharedFlow = MutableSharedFlow<MainState>()
     val mainStateSharedFlow = _mainStateSharedFlow.asSharedFlow()
 
     private val _deleteStateSharedFlow = MutableSharedFlow<DeleteState>()
     val deleteStateSharedFlow = _deleteStateSharedFlow.asSharedFlow()
 
+    /*
+    * REDIRECTION
+    */
     private val _goToLoginSharedFlow = MutableSharedFlow<Screen>()
     val goToLoginSharedFlow = _goToLoginSharedFlow.asSharedFlow()
 
@@ -81,9 +103,7 @@ class MainViewModel @Inject constructor(
     private var articlesFullList = emptyList<ArticleDto>()
 
     private var mainState: MainState? = null
-
     private var deleteState: DeleteState? = null
-
     private val headers = HashMap<String, String>()
 
     fun updateSelectedCategory(position: Int) {
@@ -91,7 +111,7 @@ class MainViewModel @Inject constructor(
         fetchArticlesListToShow()
     }
 
-    fun updateItemClicked(item: ArticleDto) {
+    fun handleItemClicked(item: ArticleDto) {
         if(item.idU == sharedPref.getUserId()) {
             viewModelScope.launch {
                 _goToEditSharedFlow.emit(Screen.Edit.route + "/${item.id}")
@@ -122,7 +142,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun fetchAllArticles() {
-
 
             headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
@@ -190,13 +209,11 @@ class MainViewModel @Inject constructor(
                         fetchAllArticles()
                 }
 
-
-
                 when(responseDeleteArticle?.code()) {
                     HTTP_201 -> DeleteState.SUCCESS
                     HTTP_304 -> DeleteState.FAILURE
                     ERROR_400 -> DeleteState.ERROR_PARAM
-                    ERROR_401 -> DeleteState.ERROR_PARAM
+                    ERROR_401 -> DeleteState.ERROR_AUTHORIZATION
                     ERROR_503 -> DeleteState.ERROR_SERVICE
                     else -> null
                 }.let {
@@ -214,8 +231,6 @@ class MainViewModel @Inject constructor(
                 _deleteStateSharedFlow.emit(it)
             }
         }
-
-
     }
 
     fun logout() {

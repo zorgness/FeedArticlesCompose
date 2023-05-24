@@ -114,7 +114,7 @@ fun MainScreen(
         isLoading = isLoading,
         isExpandedId = isExpandedId,
         isRefreshing = isRefreshing,
-        handleItemClicked = { viewModel.updateItemClicked(it) },
+        handleItemClicked = { viewModel.handleItemClicked(it) },
         handleExpandOff = { viewModel.resetExpandedId() },
         goToNewArticle = {
             navController.navigate(Screen.Creation.route)
@@ -199,7 +199,9 @@ fun MainContent(
                                     DismissDirection.EndToStart
                                 ),
                                 dismissThresholds = { direction ->
-                                    FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.1f else 0.05f)
+                                    FractionalThreshold(
+                                        if (direction == DismissDirection.EndToStart) 0.1f else 0.05f
+                                    )
                                 },
                                 background = {
 
