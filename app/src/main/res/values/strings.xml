@@ -43,6 +43,11 @@
     <string name="unknow_article">article introuvable</string>
     <string name="wrong_id_path">les ids (path et dto) sont différents</string>
 
+    <!--DELETE ARTICLE-->
+    <string name="delete_success">article supprimé</string>
+    <string name="delete_failure">article non supprimé</string>
+
+
 
 
 </resources>

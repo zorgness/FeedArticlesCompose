@@ -3,10 +3,13 @@ package com.example.feedarticlescompose.ui.main
 import ERROR_400
 import ERROR_401
 import ERROR_503
+import HTTP_201
+import HTTP_304
 import USER_TOKEN
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
+import com.example.feedarticlescompose.dataclass.StatusDto
 import com.example.feedarticlescompose.network.ApiService
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
@@ -36,6 +39,16 @@ class MainViewModel @Inject constructor(
         ERROR_PARAM
     }
 
+    enum class DeleteState {
+        SUCCESS,
+        FAILURE,
+        ERROR_SERVICE,
+        ERROR_SERVER,
+        ERROR_CONNECTION,
+        ERROR_AUTHORIZATION,
+        ERROR_PARAM
+    }
+
     private val _currentUserIdStateflow = MutableStateFlow(sharedPref.getUserId())
     val currentUserIdStateflow = _currentUserIdStateflow.asStateFlow()
 
@@ -57,6 +70,9 @@ class MainViewModel @Inject constructor(
     private val _mainStateSharedFlow = MutableSharedFlow<MainState>()
     val mainStateSharedFlow = _mainStateSharedFlow.asSharedFlow()
 
+    private val _deleteStateSharedFlow = MutableSharedFlow<DeleteState>()
+    val deleteStateSharedFlow = _deleteStateSharedFlow.asSharedFlow()
+
     private val _goToLoginSharedFlow = MutableSharedFlow<Screen>()
     val goToLoginSharedFlow = _goToLoginSharedFlow.asSharedFlow()
 
@@ -66,6 +82,10 @@ class MainViewModel @Inject constructor(
     private var articlesFullList = emptyList<ArticleDto>()
 
     private var mainState: MainState? = null
+
+    private var deleteState: DeleteState? = null
+
+    private val headers = HashMap<String, String>()
 
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
@@ -104,7 +124,7 @@ class MainViewModel @Inject constructor(
 
     fun fetchAllArticles() {
 
-            val headers = HashMap<String, String>()
+
             headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
             viewModelScope.launch {
@@ -115,7 +135,7 @@ class MainViewModel @Inject constructor(
                     val body = responseFetchArticles?.body()
 
                     when {
-                        responseFetchArticles?.body() == null ->
+                        responseFetchArticles == null ->
                             mainState = MainState.ERROR_SERVER
 
                         responseFetchArticles.isSuccessful && (body != null) -> {
@@ -149,6 +169,54 @@ class MainViewModel @Inject constructor(
                     _mainStateSharedFlow.emit(it)
                 }
             }
+    }
+
+
+    fun deleteArticle(articleId: Long) {
+
+        headers[USER_TOKEN] = sharedPref.getToken() ?: ""
+
+        try {
+            viewModelScope.launch {
+
+                val responseDeleteArticle: Response<Unit>? = withContext(Dispatchers.IO) {
+                    apiService.deleteArticle(articleId, headers)
+                }
+
+                when  {
+                    responseDeleteArticle == null  ->
+                        deleteState = DeleteState.ERROR_SERVER
+
+                    responseDeleteArticle.isSuccessful ->
+                        fetchAllArticles()
+                }
+
+
+
+                when(responseDeleteArticle?.code()) {
+                    HTTP_201 -> DeleteState.SUCCESS
+                    HTTP_304 -> DeleteState.FAILURE
+                    ERROR_400 -> DeleteState.ERROR_PARAM
+                    ERROR_401 -> DeleteState.ERROR_PARAM
+                    ERROR_503 -> DeleteState.ERROR_SERVICE
+                    else -> null
+                }.let {
+                    deleteState = it
+                }
+
+            }
+
+        } catch (e: Exception) {
+            deleteState = DeleteState.ERROR_CONNECTION
+        }
+
+        deleteState?.let {
+            viewModelScope.launch {
+                _deleteStateSharedFlow.emit(it)
+            }
+        }
+
+
     }
 
     fun logout() {

@@ -11,6 +11,7 @@ import USER_TOKEN
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.dataclass.GetArticleDto
 import com.example.feedarticlescompose.dataclass.StatusDto
 import com.example.feedarticlescompose.dataclass.UpdateArticleDto
@@ -118,7 +119,7 @@ class EditViewModel @Inject constructor(
 
     fun editArticle() {
 
-        headers["token"] = sharedPref.getToken() ?: ""
+        headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
         if(
             titleStateFlow.value.isNotBlank()
@@ -133,7 +134,7 @@ class EditViewModel @Inject constructor(
 
                     viewModelScope.launch {
 
-                        val responseEditArticle: Response<StatusDto>? = withContext(Dispatchers.IO) {
+                        val responseEditArticle: Response<Unit>? = withContext(Dispatchers.IO) {
                             apiService.updateArticle(
                                 articleId = articleIdStateFlow.value,
                                 headers = headers,
@@ -150,7 +151,7 @@ class EditViewModel @Inject constructor(
                         val body = responseEditArticle?.body()
 
                         when {
-                            responseEditArticle?.body() == null ->
+                            responseEditArticle == null ->
                                 editState = EditState.ERROR_SERVER
 
                             responseEditArticle.isSuccessful && (body != null) -> {
@@ -167,49 +168,52 @@ class EditViewModel @Inject constructor(
                             ERROR_401 -> EditState.ERROR_AUTHORIZATION
                             ERROR_503 -> EditState.ERROR_SERVICE
                         }
-
                     }
 
                 } catch (e: Exception) {
                     editState = EditState.ERROR_CONNECTION
                 }
 
-            } else {
+            } else
                 editState = EditState.ERROR_TITLE
-            }
 
-        } else {
-            editState = EditState.EMPTY_FIELDS
+        } else
+             editState = EditState.EMPTY_FIELDS
+
+        editState?.let {
+            viewModelScope.launch {
+                _editStateSharedFlow.emit(it)
+            }
         }
 
     }
 
     fun fetchArticle(articleId: Long) {
 
-        Log.d("fetchedArticle", "articleId: $articleId")
-        _articleIdStateFlow.value = articleId
+       // _articleIdStateFlow.value = articleId
 
         headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
-       try {
+        try {
 
-           viewModelScope.launch {
-               val responseFetchArticle: Response<GetArticleDto>? = withContext(Dispatchers.IO) {
+            viewModelScope.launch {
+                val responseFetchArticle: Response<ArticleDto>? = withContext(Dispatchers.IO) {
                    apiService.fetchArticleById(headers, articleId)
-               }
-               val body = responseFetchArticle?.body()
-               when {
-                   responseFetchArticle?.body() == null ->
-                       fetchState = FetchState.ERROR_SERVER
+                }
+                val body = responseFetchArticle?.body()
 
-                   responseFetchArticle.isSuccessful && (body != null) -> {
-                       with(body.article) {
+                when {
+                    responseFetchArticle?.body() == null ->
+                        fetchState = FetchState.ERROR_SERVER
+
+                    responseFetchArticle.isSuccessful && (body != null) -> {
+                        with(body) {
                            updateTitle(titre)
                            updateContent(descriptif)
                            updateImageUrl(urlImage)
                            updateSelectedCategory(categorie.minus(1))
-                       }
-                   }
+                        }
+                    }
 
                }
 
@@ -222,10 +226,9 @@ class EditViewModel @Inject constructor(
                }.let {
                    fetchState = it
                }
-
            }
 
-           } catch (e: Exception) {
+        } catch (e: Exception) {
                 fetchState = FetchState.ERROR_CONNECTION
            }
 

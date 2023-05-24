@@ -94,7 +94,7 @@ class CreationViewModel @Inject constructor(
 
                     viewModelScope.launch {
 
-                        val responseNewArticle: Response<StatusDto>? = withContext(Dispatchers.IO) {
+                        val responseNewArticle: Response<Unit>? = withContext(Dispatchers.IO) {
                             apiService.addNewArticle(
                                 NewArticleDto(
                                     title = titleStateFlow.value,
@@ -110,7 +110,7 @@ class CreationViewModel @Inject constructor(
                         val body = responseNewArticle?.body()
 
                         when {
-                            responseNewArticle?.body() == null ->
+                            responseNewArticle == null ->
                                 message = CreationState.ERROR_SERVER
 
                             responseNewArticle.isSuccessful && (body != null) -> {
@@ -118,11 +118,7 @@ class CreationViewModel @Inject constructor(
                                 _goToMainScreen.emit(Screen.Main)
                             }
 
-                            responseNewArticle.code() == ERROR_401 ->
-                                message = CreationState.ERROR_PARAM
 
-                            responseNewArticle.code() == ERROR_403 ->
-                                message = CreationState.ERROR_AUTHORIZATION
                         }
 
                     }

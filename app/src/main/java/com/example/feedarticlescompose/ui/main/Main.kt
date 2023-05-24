@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -33,6 +34,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
+import com.example.feedarticlescompose.ui.main.MainViewModel.DeleteState.*
 import com.example.feedarticlescompose.ui.theme.BlueApp
 import com.example.feedarticlescompose.utils.Category
 import com.example.feedarticlescompose.utils.Screen
@@ -74,13 +76,29 @@ fun MainScreen(
     }
 
     LaunchedEffect(true) {
-        viewModel.mainStateSharedFlow.collect { message ->
-            when(message) {
+        viewModel.mainStateSharedFlow.collect { state ->
+            when(state) {
                 MainViewModel.MainState.ERROR_PARAM -> R.string.error_param
                 MainViewModel.MainState.ERROR_SERVER -> R.string.error_server
                 MainViewModel.MainState.ERROR_CONNECTION -> R.string.error_connection
                 MainViewModel.MainState.ERROR_AUTHORIZATION -> R.string.error_authorization
                 MainViewModel.MainState.ERROR_SERVICE -> R.string.error_service
+            }.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(true) {
+        viewModel.deleteStateSharedFlow.collect { state ->
+            when (state) {
+                SUCCESS -> R.string.delete_success
+                FAILURE -> R.string.delete_failure
+                ERROR_SERVICE -> R.string.error_service
+                ERROR_SERVER -> R.string.error_server
+                ERROR_CONNECTION -> R.string.error_connection
+                ERROR_AUTHORIZATION -> R.string.error_authorization
+                ERROR_PARAM -> R.string.error_param
             }.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
@@ -105,7 +123,8 @@ fun MainScreen(
         handleCategory = { position ->
             viewModel.updateSelectedCategory(position)
         },
-        handleRefresh = { viewModel.setRefresh() }
+        handleRefresh = { viewModel.setRefresh() },
+        handleDelete = { viewModel.deleteArticle(it) }
     )
 }
 
@@ -124,7 +143,8 @@ fun MainContent(
     goToNewArticle: () -> Unit,
     handleLogout: () -> Unit,
     handleCategory: (Int) -> Unit,
-    handleRefresh: () -> Unit
+    handleRefresh: () -> Unit,
+    handleDelete: (Long) -> Unit,
 ) {
 
     Box(
@@ -170,8 +190,7 @@ fun MainContent(
                             val dismissState = rememberDismissState()
 
                             if (dismissState.isDismissed(DismissDirection.EndToStart)) {
-
-                                //handleDelete(item.id)
+                                handleDelete(item.id)
                             }
 
                             SwipeToDismiss(
@@ -312,7 +331,7 @@ fun ItemArticle(
                         .data(item.urlImage)
                         .crossfade(true)
                         .build(),
-                    //placeholder = painterResource(R.drawable.feedarticles_logo),
+                    error = painterResource(R.drawable.feedarticles_logo),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -320,6 +339,7 @@ fun ItemArticle(
                         .clip(CircleShape)
                         .border(1.dp, Color.Black, CircleShape)
                         .background(Color.White)
+
 
                 )
 

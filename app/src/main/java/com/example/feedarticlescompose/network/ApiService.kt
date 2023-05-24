@@ -26,13 +26,13 @@ interface ApiService {
     suspend fun addNewArticle(
         @Body newArticleDto: NewArticleDto,
         @HeaderMap headers: Map<String, String>,
-    ): Response<StatusDto>?
+    ): Response<Unit>?
 
  @GET(ApiRoutes.ARTICLES)
     suspend fun fetchArticleById(
         @HeaderMap headers: Map<String, String>,
         @Query("id") articleId: Long,
-    ): Response<GetArticleDto>?
+    ): Response<ArticleDto>?
 
  @POST(ApiRoutes.ARTICLES)
     suspend fun updateArticle(
@@ -40,11 +40,11 @@ interface ApiService {
         @HeaderMap headers: Map<String, String>,
         @Body updateArticleDto: UpdateArticleDto
 
-    ): Response<StatusDto>?
+    ): Response<Unit>?
 
     @DELETE(ApiRoutes.ARTICLES)
     suspend fun deleteArticle(
         @Query("id") articleId: Long,
         @HeaderMap headers: Map<String, String>
-    ): Response<StatusDto>?
+    ): Response<Unit>?
 }

@@ -128,7 +128,7 @@ fun EditContent(
         Text(
             text = context.getString(R.string.edit_article),
             fontWeight = FontWeight.Bold,
-            fontSize = 32.sp,
+            fontSize = 32.sp
         )
 
         CustomTextField(
@@ -150,20 +150,18 @@ fun EditContent(
         )
 
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest.Builder(context)
                 .data(imageUrl)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
             placeholder = painterResource(id = R.drawable.feedarticles_logo),
-            /*onSuccess = { isVisible = true },
-            onError = { isVisible = false },*/
             modifier = Modifier
                 .size(80.dp)
 
         )
 
-        RadioButtonsEditGroup(
+        RadioButtonsNewEditGroup(
             selectedCategory,
             onRadioSelected = { handleCategoryPosition(it) }
         )
@@ -182,30 +180,5 @@ fun EditContent(
 
 }
 
-@Composable
-fun RadioButtonsEditGroup(
-    selectedCategory: Int,
-    onRadioSelected: (Int) -> Unit
-) {
 
-    val categories = listOf("Sport", "Manga", "Divers")
-    Row(
-        Modifier.padding(8.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        categories.forEachIndexed { index, category ->
-            RadioButton(
-                selected = selectedCategory == index,
-                onClick = { onRadioSelected(index) }
-            )
-            Text(
-                text = category,
-                color = Color.Black
-            )
-        }
-
-    }
-}
 

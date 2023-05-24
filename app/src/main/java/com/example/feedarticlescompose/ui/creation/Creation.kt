@@ -121,13 +121,12 @@ fun CreationContent(
                 .crossfade(true)
                 .build(),
             contentDescription = null,
-            placeholder = painterResource(id = R.drawable.feedarticles_logo),
             modifier = Modifier
                 .size(80.dp)
 
         )
 
-        RadioButtonsCreationGroup(
+        RadioButtonsNewEditGroup(
             selectedCategory,
             onRadioSelected = { handleCategoryPosition(it) }
         )
@@ -147,7 +146,7 @@ fun CreationContent(
 }
 
 @Composable
-fun RadioButtonsCreationGroup(
+fun RadioButtonsNewEditGroup(
     selectedCategory: Int,
     onRadioSelected: (Int) -> Unit
 ) {

@@ -87,7 +87,7 @@ class RegisterViewModel @Inject constructor(
                         val body = responseRegister?.body()
 
                         when {
-                            responseRegister?.body() == null ->
+                            responseRegister == null ->
                                 registerState = RegisterState.ERROR_SERVER
 
                             responseRegister.isSuccessful && (body != null) -> {
