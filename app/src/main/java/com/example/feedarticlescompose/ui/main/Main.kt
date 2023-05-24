@@ -1,7 +1,10 @@
 package com.example.feedarticlescompose.ui.main
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -197,6 +200,12 @@ fun ItemArticle(
     onExpandOffClicked: () -> Unit
 ) {
 
+
+    val animatedSize by animateDpAsState(
+        targetValue = if(isExpandedId == item.id) 90.dp else 60.dp,
+        animationSpec = tween(1500, 150, easing = LinearOutSlowInEasing)
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -226,7 +235,7 @@ fun ItemArticle(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(animatedSize)
                         .clip(CircleShape)
                         .border(1.dp, Color.Black, CircleShape)
                         .background(Color.White)
@@ -258,7 +267,9 @@ fun ItemArticle(
             }
 
             AnimatedVisibility(
-                visible = item.id == isExpandedId
+                visible = item.id == isExpandedId,
+                enter = expandVertically(),
+                exit = fadeOut() + slideOutVertically()
             ) {
                 Box(
                     modifier = Modifier

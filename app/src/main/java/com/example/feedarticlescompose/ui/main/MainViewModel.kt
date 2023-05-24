@@ -77,7 +77,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun resetExpandedId() {
-        _expandedIdStateFlow.value = 0
+        _expandedIdStateFlow.value = 0L
     }
 
 
