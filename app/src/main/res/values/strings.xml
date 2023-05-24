@@ -31,10 +31,12 @@
 
     <!--NEW EDIT ARTICLE-->
 
+    <string name="new_article">Nouvel Article</string>
     <string name="edit_article">Edition Article</string>
     <string name="title">Titre</string>
     <string name="content">Contenu</string>
     <string name="image_url">Image Url</string>
+    <string name="save">Enregister</string>
     <string name="update">Mise à jour</string>
     <string name="new_success">article ajouté</string>
     <string name="new_failure">pas de création</string>

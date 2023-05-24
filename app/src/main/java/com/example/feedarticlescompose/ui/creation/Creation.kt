@@ -1,3 +1,4 @@
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -62,6 +63,7 @@ fun CreationScreen(
     }
 
     CreationContent(
+        context,
         title,
         content,
         imageUrl,
@@ -77,6 +79,7 @@ fun CreationScreen(
 
 @Composable
 fun CreationContent(
+    context: Context,
     title: String,
     content: String,
     imageUrl: String,
@@ -96,25 +99,25 @@ fun CreationContent(
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         Text(
-            text = "Nouvel Article",
+            text = context.getString(R.string.new_article),
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
         )
 
         CustomTextField(
-            placeholder = "Titre" ,
+            placeholder = context.getString(R.string.title),
             value = title,
             handleValue = { handleTitle(it) }
         )
 
         CustomTextField(
-            placeholder = "Contenu" ,
+            placeholder = context.getString(R.string.content),
             value = content,
             handleValue = { handleContent(it) },
             customHeight = 120
         )
         CustomTextField(
-            placeholder = "Image URL" ,
+            placeholder = context.getString(R.string.image_url),
             value = imageUrl,
             handleValue = { handleImageUrl(it) }
         )
@@ -141,7 +144,7 @@ fun CreationContent(
             onClick = { handleClick() }
         ) {
             Text(
-                text = "Enregister",
+                text = context.getString(R.string.save),
                 color = Color.White
             )
         }
