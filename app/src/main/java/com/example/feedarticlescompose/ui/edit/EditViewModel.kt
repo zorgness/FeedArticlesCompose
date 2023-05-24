@@ -2,17 +2,15 @@ package com.example.feedarticlescompose.ui.edit
 
 import ERROR_401
 import ERROR_403
-import TOKEN
+import USER_TOKEN
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.GetArticleDto
-import com.example.feedarticlescompose.dataclass.NewArticleDto
 import com.example.feedarticlescompose.dataclass.StatusDto
 import com.example.feedarticlescompose.dataclass.UpdateArticleDto
 import com.example.feedarticlescompose.extensions.is80charactersMax
 import com.example.feedarticlescompose.network.ApiService
-import com.example.feedarticlescompose.ui.creation.CreationViewModel
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -168,7 +166,7 @@ class EditViewModel @Inject constructor(
         Log.d("fetchedArticle", "articleId: $articleId")
         _articleIdStateFlow.value = articleId
 
-        headers[TOKEN] = sharedPref.getToken() ?: ""
+        headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
        try {
 

@@ -11,12 +11,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,12 +39,14 @@ fun MainScreen(
     navController: NavHostController,
     viewModel: MainViewModel,
 ) {
-    val articlesList by viewModel.articlesListStateFlow.collectAsState()
+    val articlesList by viewModel.articlesToShowStateFlow.collectAsState()
     val isLoading by viewModel.isLoadingStateFlow.collectAsState()
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
+    val isExpandedId by viewModel.expandedIdStateFlow.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(true ) {
+
+    LaunchedEffect(true) {
         viewModel.goToLoginSharedFlow.collect {
             navController.navigate(it.route) {
                 popUpTo(Screen.Main.route) {
@@ -57,13 +56,13 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(true ) {
-        viewModel.goToEditSharedFlow.collect {route->
+    LaunchedEffect(true) {
+        viewModel.goToEditSharedFlow.collect { route ->
             navController.navigate(route)
         }
     }
 
-    LaunchedEffect(true){
+    LaunchedEffect(true) {
         viewModel.messageSharedFlow.collect { message ->
             when (message) {
                 MainViewModel.MainState.ERROR_PARAM -> R.string.error_param
@@ -83,12 +82,14 @@ fun MainScreen(
         selectedCategory = selectedCategory,
         articlesList = articlesList,
         isLoading = isLoading,
+        isExpandedId = isExpandedId,
         handleItemClicked = { viewModel.updateItemClicked(it) },
+        handleExpandOff = { viewModel.resetExpandedId() },
         goToNewArticle = {
             navController.navigate(Screen.Creation.route)
         },
         handleLogout = { viewModel.logout() },
-        handleCategory = { position->
+        handleCategory = { position ->
             viewModel.updateSelectedCategory(position)
         }
     )
@@ -100,10 +101,11 @@ fun MainContent(
     articlesList: List<ArticleDto>,
     isLoading: Boolean,
     handleItemClicked: (ArticleDto) -> Unit,
-    goToNewArticle:() -> Unit,
-    handleLogout:()-> Unit,
-    handleCategory:(Int)->Unit
-
+    isExpandedId: Long,
+    handleExpandOff: () -> Unit,
+    goToNewArticle: () -> Unit,
+    handleLogout: () -> Unit,
+    handleCategory: (Int) -> Unit
 ) {
 
     Box(
@@ -116,8 +118,8 @@ fun MainContent(
         ) {
 
             Header(
-                onAddIconClicked = {goToNewArticle()},
-                onLogoutIconClicked = {handleLogout()}
+                onAddIconClicked = { goToNewArticle() },
+                onLogoutIconClicked = { handleLogout() }
             )
 
             LazyColumn(
@@ -126,11 +128,13 @@ fun MainContent(
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp)
-            ){
-                items(items = articlesList){
+            ) {
+                items(items = articlesList) {
                     ItemArticle(
                         item = it,
-                        onItemClicked = handleItemClicked
+                        isExpandedId,
+                        onItemClicked = handleItemClicked,
+                        onExpandOffClicked = handleExpandOff
                     )
                 }
             }
@@ -158,9 +162,10 @@ fun Header(
     onLogoutIconClicked: () -> Unit
 ) {
 
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(80.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
     ) {
         Icon(
             Icons.Outlined.Add,
@@ -170,7 +175,7 @@ fun Header(
                 .align(Alignment.CenterStart)
                 .padding(8.dp)
                 .clickable { onAddIconClicked() }
-            )
+        )
         Icon(
             Icons.Outlined.ExitToApp,
             contentDescription = null,
@@ -187,27 +192,31 @@ fun Header(
 @Composable
 fun ItemArticle(
     item: ArticleDto,
-    onItemClicked: (ArticleDto)->Unit
+    isExpandedId: Long,
+    onItemClicked: (ArticleDto) -> Unit,
+    onExpandOffClicked: () -> Unit
 ) {
 
     Card(
         modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onItemClicked(item)
-                    }
+            .fillMaxWidth()
+            .clickable {
+                onItemClicked(item)
+            }
     ) {
         Column(
             modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Category.getColor(item.categorie))
-                        .border(1.dp, Color.Black)
-                        .padding(8.dp),
+                .fillMaxWidth()
+                .background(Category.getColor(item.categorie))
+                .border(1.dp, Color.Black)
+                .padding(8.dp)
         ) {
 
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.urlImage)
@@ -217,48 +226,69 @@ fun ItemArticle(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                                .size(60.dp)
-                                .clip(CircleShape)
-                                .border(1.dp, Color.Black, CircleShape)
-                                .background(Color.White)
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .border(1.dp, Color.Black, CircleShape)
+                        .background(Color.White)
+
                 )
 
                 Text(
                     text = item.titre,
                     style = TextStyle(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(start = 10.dp)
+                    modifier = Modifier.padding(start = 8.dp)
+
+                )
+            if(item.id == isExpandedId) {
+                Spacer(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                )
+
+                Icon(
+                    Icons.Default.ExpandLess,
+                    contentDescription = null,
+                    modifier = Modifier.clickable {
+                        onExpandOffClicked()
+                    }
                 )
             }
 
+            }
 
+            AnimatedVisibility(
+                visible = item.id == isExpandedId
+            ) {
                 Box(
                     modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top= 12.dp)
+                        .fillMaxSize()
+                        .padding(top = 24.dp)
                 ) {
                     Text(
-                        text = dateForrmater(item.createdAt),
+                        text = "Du ${dateForrmater(item.createdAt)}",
+                        color = Color.Black,
                         modifier = Modifier.align(Alignment.TopStart)
                     )
                     Text(
-                        text = "Cat  ${Category.getTitle(item.categorie)}",
+                        text = "Cat ${Category.getTitle(item.categorie)}",
+                        color = Color.Black,
                         modifier = Modifier.align(Alignment.TopEnd)
 
                     )
                     Text(
                         text = item.descriptif,
+                        color = Color.Black,
                         modifier = Modifier
-                                    .padding(top= 24.dp)
-                                    .align(Alignment.CenterStart)
+                            .padding(top = 24.dp)
+                            .align(Alignment.CenterStart)
 
                     )
                 }
 
-
+            }
 
         }
-
-
     }
 }
 
@@ -266,8 +296,8 @@ fun ItemArticle(
 fun Footer(selectedCategory: Int, onRadioSelected: (Int) -> Unit) {
     Box(
         modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
+            .fillMaxWidth()
+            .height(80.dp)
     ) {
         RadioBtnMainGroup(
             selectedCategory,
@@ -282,7 +312,7 @@ fun RadioBtnMainGroup(
     onRadioSelected: (Int) -> Unit
 ) {
 
-    val categories = listOf("Tout","Sport", "Manga", "Divers")
+    val categories = listOf("Tout", "Sport", "Manga", "Divers")
     Row(
         Modifier.padding(8.dp),
         horizontalArrangement = Arrangement.Center,

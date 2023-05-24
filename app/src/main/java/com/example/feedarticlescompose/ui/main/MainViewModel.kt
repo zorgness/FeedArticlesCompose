@@ -2,6 +2,9 @@ package com.example.feedarticlescompose.ui.main
 
 import ERROR_400
 import ERROR_403
+import STATUS_REQUEST_ERROR
+import STATUS_REQUEST_OK
+import USER_TOKEN
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
@@ -37,11 +40,14 @@ class MainViewModel @Inject constructor(
     private val _isLoadingStateFlow = MutableStateFlow(true)
     val isLoadingStateFlow = _isLoadingStateFlow.asStateFlow()
 
+    private val _expandedIdStateFlow = MutableStateFlow(0L)
+    val expandedIdStateFlow = _expandedIdStateFlow.asStateFlow()
+
     private val _selectedCategoryStateflow = MutableStateFlow<Int>(0)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
-    private val _articlesListStateFlow = MutableStateFlow(emptyList<ArticleDto>())
-    val articlesListStateFlow = _articlesListStateFlow.asStateFlow()
+    private val _articlesToShowStateFlow = MutableStateFlow(emptyList<ArticleDto>())
+    val articlesToShowStateFlow = _articlesToShowStateFlow.asStateFlow()
 
     private val _messageSharedFlow = MutableSharedFlow<MainState>()
     val messageSharedFlow = _messageSharedFlow.asSharedFlow()
@@ -52,13 +58,13 @@ class MainViewModel @Inject constructor(
     private val _goToEditSharedFlow = MutableSharedFlow<String>()
     val goToEditSharedFlow = _goToEditSharedFlow.asSharedFlow()
 
-    private var tmpList = emptyList<ArticleDto>()
+    private var articlesFullList = emptyList<ArticleDto>()
 
     private var message: MainState? = null
 
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
-        fetchfilteredListArticle()
+        fetchArticlesListToShow()
     }
 
     fun updateItemClicked(item: ArticleDto) {
@@ -66,25 +72,30 @@ class MainViewModel @Inject constructor(
             viewModelScope.launch {
                 _goToEditSharedFlow.emit(Screen.Edit.route + "/${item.id}")
             }
-        }
+        } else
+            _expandedIdStateFlow.value = item.id
+    }
+
+    fun resetExpandedId() {
+        _expandedIdStateFlow.value = 0
     }
 
 
-    private fun fetchfilteredListArticle() {
+    private fun fetchArticlesListToShow() {
 
         if(selectedCategoryStateflow.value > 0) {
-            _articlesListStateFlow.value = tmpList.filter { article->
+            _articlesToShowStateFlow.value = articlesFullList.filter { article->
                 article.categorie == selectedCategoryStateflow.value
             }
         } else
-            _articlesListStateFlow.value = tmpList
+            _articlesToShowStateFlow.value = articlesFullList
 
     }
 
     fun fetchAllArticles() {
 
             val headers = HashMap<String, String>()
-            headers["token"] = sharedPref.getToken() ?: ""
+            headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
             viewModelScope.launch {
                 try {
@@ -99,13 +110,13 @@ class MainViewModel @Inject constructor(
 
                         responseFetchArticles.isSuccessful && (body != null) -> {
 
-                            if(body.status == "ok") {
-                                tmpList = body.articles
+                            if(body.status == STATUS_REQUEST_OK) {
+                                articlesFullList = body.articles
                                 _isLoadingStateFlow.value = false
-                                fetchfilteredListArticle()
+                                fetchArticlesListToShow()
                             }
 
-                            if(body.status.contains("error"))
+                            if(body.status.contains(STATUS_REQUEST_ERROR))
                                 message = MainState.ERROR_PARAM
                         }
 
@@ -121,12 +132,11 @@ class MainViewModel @Inject constructor(
             }
 
 
-        message?.let {
-            viewModelScope.launch {
-                _messageSharedFlow.emit(it)
+            message?.let {
+                viewModelScope.launch {
+                    _messageSharedFlow.emit(it)
+                }
             }
-        }
-
     }
 
     fun logout() {
