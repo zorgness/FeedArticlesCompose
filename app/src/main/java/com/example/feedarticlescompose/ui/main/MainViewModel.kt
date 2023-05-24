@@ -14,6 +14,7 @@ import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -36,9 +37,14 @@ class MainViewModel @Inject constructor(
         ERROR_PARAM
     }
 
+    private val _currentUserIdStateflow = MutableStateFlow(sharedPref.getUserId())
+    val currentUserIdStateflow = _currentUserIdStateflow.asStateFlow()
 
     private val _isLoadingStateFlow = MutableStateFlow(true)
     val isLoadingStateFlow = _isLoadingStateFlow.asStateFlow()
+
+    private val _isRefreshingStateFlow = MutableStateFlow(false)
+    val isRefreshingStateFlow = _isRefreshingStateFlow.asStateFlow()
 
     private val _expandedIdStateFlow = MutableStateFlow(0L)
     val expandedIdStateFlow = _expandedIdStateFlow.asStateFlow()
@@ -80,6 +86,11 @@ class MainViewModel @Inject constructor(
         _expandedIdStateFlow.value = 0L
     }
 
+    fun setRefresh() {
+        _isRefreshingStateFlow.value = !_isRefreshingStateFlow.value
+        fetchAllArticles()
+    }
+
 
     private fun fetchArticlesListToShow() {
 
@@ -114,6 +125,9 @@ class MainViewModel @Inject constructor(
                                 articlesFullList = body.articles
                                 _isLoadingStateFlow.value = false
                                 fetchArticlesListToShow()
+                                delay(500)
+                                _isRefreshingStateFlow.value = false
+
                             }
 
                             if(body.status.contains(STATUS_REQUEST_ERROR))

@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -20,23 +22,31 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
+import com.example.feedarticlescompose.ui.theme.BlueApp
 import com.example.feedarticlescompose.utils.Category
 import com.example.feedarticlescompose.utils.Screen
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import dateForrmater
 
-
+@ExperimentalUnitApi
+@ExperimentalMaterialApi
 @Composable
 fun MainScreen(
     navController: NavHostController,
@@ -46,6 +56,8 @@ fun MainScreen(
     val isLoading by viewModel.isLoadingStateFlow.collectAsState()
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
     val isExpandedId by viewModel.expandedIdStateFlow.collectAsState()
+    val isRefreshing by viewModel.isRefreshingStateFlow.collectAsState()
+    val currentUserId by viewModel.currentUserIdStateflow.collectAsState()
     val context = LocalContext.current
 
 
@@ -84,8 +96,10 @@ fun MainScreen(
     MainContent(
         selectedCategory = selectedCategory,
         articlesList = articlesList,
+        currentUserId = currentUserId,
         isLoading = isLoading,
         isExpandedId = isExpandedId,
+        isRefreshing = isRefreshing,
         handleItemClicked = { viewModel.updateItemClicked(it) },
         handleExpandOff = { viewModel.resetExpandedId() },
         goToNewArticle = {
@@ -94,59 +108,130 @@ fun MainScreen(
         handleLogout = { viewModel.logout() },
         handleCategory = { position ->
             viewModel.updateSelectedCategory(position)
-        }
+        },
+        handleRefresh = { viewModel.setRefresh() }
     )
 }
 
+@ExperimentalUnitApi
+@ExperimentalMaterialApi
 @Composable
 fun MainContent(
     selectedCategory: Int,
     articlesList: List<ArticleDto>,
+    currentUserId: Long,
     isLoading: Boolean,
-    handleItemClicked: (ArticleDto) -> Unit,
+    isRefreshing: Boolean,
     isExpandedId: Long,
+    handleItemClicked: (ArticleDto) -> Unit,
     handleExpandOff: () -> Unit,
     goToNewArticle: () -> Unit,
     handleLogout: () -> Unit,
-    handleCategory: (Int) -> Unit
+    handleCategory: (Int) -> Unit,
+    handleRefresh: () -> Unit
 ) {
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing),
+            onRefresh = { handleRefresh() },
+            indicator = { _ ,trigger->
+                SwipeRefreshIndicator(
+                    state = rememberSwipeRefreshState(isRefreshing),
+                    refreshTriggerDistance = trigger,
+                    contentColor = BlueApp,
+                    modifier =  Modifier.padding(top= if(isRefreshing)120.dp else 0.dp) ,
+                    elevation = 4.dp
+                )
+            }
         ) {
 
-            Header(
-                onAddIconClicked = { goToNewArticle() },
-                onLogoutIconClicked = { handleLogout() }
-            )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                items(items = articlesList) {
-                    ItemArticle(
-                        item = it,
-                        isExpandedId,
-                        onItemClicked = handleItemClicked,
-                        onExpandOffClicked = handleExpandOff
-                    )
-                }
-            }
 
-            Footer(
-                selectedCategory,
-                onRadioSelected = { handleCategory(it) }
-            )
+                Header(
+                    onAddIconClicked = { goToNewArticle() },
+                    onLogoutIconClicked = { handleLogout() }
+                )
+
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                ) {
+                    items(items = articlesList) {item->
+
+
+                        if(item.idU == currentUserId) {
+
+                            val dismissState = rememberDismissState()
+
+                            if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+
+                                //handleDelete(item.id)
+                            }
+
+                            SwipeToDismiss(
+                                state = dismissState,
+                                directions = setOf(
+                                    DismissDirection.EndToStart
+                                ),
+                                dismissThresholds = { direction ->
+                                    FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.1f else 0.05f)
+                                },
+                                background = {
+
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Red)
+                                            .padding(horizontal = Dp(20f)),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Delete,
+                                            contentDescription = null,
+                                        )
+                                    }
+                                },
+                                dismissContent = {
+                                    ItemArticle(
+                                        item = item,
+                                        isExpandedId,
+                                        onItemClicked = handleItemClicked,
+                                        onExpandOffClicked = handleExpandOff
+                                    )
+                                }
+                            )
+
+                            Divider(Modifier.fillMaxWidth(), Color.DarkGray)
+
+                        } else {
+
+                            ItemArticle(
+                                item = item,
+                                isExpandedId,
+                                onItemClicked = handleItemClicked,
+                                onExpandOffClicked = handleExpandOff
+                            )
+                        }
+                    }
+                }
+
+                Footer(
+                    selectedCategory,
+                    onRadioSelected = { handleCategory(it) }
+                )
+            }
         }
+
         AnimatedVisibility(
             visible = isLoading,
             modifier = Modifier
@@ -203,7 +288,7 @@ fun ItemArticle(
 
     val animatedSize by animateDpAsState(
         targetValue = if(isExpandedId == item.id) 90.dp else 60.dp,
-        animationSpec = tween(1500, 150, easing = LinearOutSlowInEasing)
+        animationSpec = tween(1000, 100, easing = LinearOutSlowInEasing)
     )
 
     Card(
@@ -231,7 +316,7 @@ fun ItemArticle(
                         .data(item.urlImage)
                         .crossfade(true)
                         .build(),
-                    placeholder = painterResource(R.drawable.feedarticles_logo),
+                    //placeholder = painterResource(R.drawable.feedarticles_logo),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
