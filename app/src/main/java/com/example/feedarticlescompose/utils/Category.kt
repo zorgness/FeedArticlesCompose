@@ -9,8 +9,8 @@ enum class Category(
 ) {
 
     Sport(1, "sport", Color.Yellow),
-    Manga(2, "manga", Color.Blue),
-    Divers(3, "divers", Color.Gray);
+    Manga(2, "manga", Color.Gray),
+    Divers(3, "divers", Color.LightGray);
 
     companion object {
 

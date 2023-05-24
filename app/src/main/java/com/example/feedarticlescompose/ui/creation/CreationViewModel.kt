@@ -138,6 +138,11 @@ class CreationViewModel @Inject constructor(
         } else {
             message = CreationState.EMPTY_FIELDS
         }
-    }
 
+        message?.let {
+            viewModelScope.launch {
+                _messageSharedFlow.emit(it)
+            }
+        }
+    }
 }

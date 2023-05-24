@@ -34,6 +34,7 @@ import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
 import com.example.feedarticlescompose.utils.Category
 import com.example.feedarticlescompose.utils.Screen
+import dateForrmater
 
 
 @Composable
@@ -191,44 +192,73 @@ fun ItemArticle(
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onItemClicked(item)
-            }
+                    .fillMaxWidth()
+                    .clickable {
+                        onItemClicked(item)
+                    }
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Category.getColor(item.categorie))
-                .border(1.dp, Color.Black)
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                        .fillMaxWidth()
+                        .background(Category.getColor(item.categorie))
+                        .border(1.dp, Color.Black)
+                        .padding(8.dp),
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(item.urlImage)
-                    .crossfade(true)
-                    .build(),
-                placeholder = painterResource(R.drawable.feedarticles_logo),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, Color.Black, CircleShape)
-                    .background(Color.White)
-            )
 
-            Spacer(modifier = Modifier
-                .width(10.dp)
-                .fillMaxHeight()
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(item.urlImage)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.feedarticles_logo),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                                .size(60.dp)
+                                .clip(CircleShape)
+                                .border(1.dp, Color.Black, CircleShape)
+                                .background(Color.White)
+                )
 
-            Text(
-                text = item.titre,
-                style = TextStyle(fontWeight = FontWeight.Bold)
-            )
+                Text(
+                    text = item.titre,
+                    style = TextStyle(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(start = 10.dp)
+                )
+            }
+
+
+                Box(
+                    modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top= 12.dp)
+                ) {
+                    Text(
+                        text = dateForrmater(item.createdAt),
+                        modifier = Modifier.align(Alignment.TopStart)
+                    )
+                    Text(
+                        text = "Cat  ${Category.getTitle(item.categorie)}",
+                        modifier = Modifier.align(Alignment.TopEnd)
+
+                    )
+                    Text(
+                        text = item.descriptif,
+                        modifier = Modifier
+                                    .padding(top= 24.dp)
+                                    .align(Alignment.CenterStart)
+
+                    )
+                }
+
+
+
         }
+
+
     }
 }
 
@@ -236,8 +266,8 @@ fun ItemArticle(
 fun Footer(selectedCategory: Int, onRadioSelected: (Int) -> Unit) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
+                    .fillMaxWidth()
+                    .height(80.dp)
     ) {
         RadioBtnMainGroup(
             selectedCategory,

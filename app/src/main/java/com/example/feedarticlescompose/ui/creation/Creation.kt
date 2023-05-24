@@ -1,3 +1,4 @@
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.RadioButton
@@ -30,6 +31,7 @@ fun CreationScreen(
     val content by viewModel.contentStateFlow.collectAsState()
     val imageUrl by viewModel.imageUrlStateFlow.collectAsState()
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(true) {
         viewModel.goToMainScreen.collect {
@@ -49,6 +51,8 @@ fun CreationScreen(
                 CreationViewModel.CreationState.EMPTY_FIELDS -> R.string.empty_fields
                 CreationViewModel.CreationState.ERROR_TITLE -> R.string.error_title
                 CreationViewModel.CreationState.FAILURE -> R.string.new_failure
+            }.let {
+                Toast.makeText(context , it, Toast.LENGTH_SHORT).show()
             }
         }
     }

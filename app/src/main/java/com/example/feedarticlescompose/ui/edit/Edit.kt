@@ -1,3 +1,4 @@
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.RadioButton
@@ -32,6 +33,7 @@ fun EditScreen(
     val content by viewModel.contentStateFlow.collectAsState()
     val imageUrl by viewModel.imageUrlStateFlow.collectAsState()
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(true) {
         viewModel.fetchArticleSharedFlow.collect {
@@ -51,16 +53,18 @@ fun EditScreen(
 
 
      LaunchedEffect(true ) {
-        viewModel.messageSharedFlow.collect { message ->
-            when(message) {
-                EditViewModel.EditState.SUCCESS -> R.string.new_success
-                EditViewModel.EditState.ERROR_PARAM -> R.string.error_param
-                EditViewModel.EditState.ERROR_SERVER -> R.string.error_server
-                EditViewModel.EditState.ERROR_CONNECTION -> R.string.error_connection
-                EditViewModel.EditState.ERROR_AUTHORIZATION -> R.string.error_authorization
-                EditViewModel.EditState.EMPTY_FIELDS -> R.string.empty_fields
-                EditViewModel.EditState.ERROR_TITLE -> R.string.error_title
-                EditViewModel.EditState.FAILURE -> R.string.new_failure
+         viewModel.messageSharedFlow.collect { message ->
+             when(message) {
+                 EditViewModel.EditState.SUCCESS -> R.string.new_success
+                 EditViewModel.EditState.ERROR_PARAM -> R.string.error_param
+                 EditViewModel.EditState.ERROR_SERVER -> R.string.error_server
+                 EditViewModel.EditState.ERROR_CONNECTION -> R.string.error_connection
+                 EditViewModel.EditState.ERROR_AUTHORIZATION -> R.string.error_authorization
+                 EditViewModel.EditState.EMPTY_FIELDS -> R.string.empty_fields
+                 EditViewModel.EditState.ERROR_TITLE -> R.string.error_title
+                 EditViewModel.EditState.FAILURE -> R.string.new_failure
+             }.let {
+                Toast.makeText(context , it, Toast.LENGTH_SHORT).show()
             }
         }
     }

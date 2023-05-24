@@ -30,9 +30,6 @@ fun CustomTextField(
 
     BasicTextField(
         value = value,
-        textStyle= TextStyle(
-            color = BlueApp
-        ),
         modifier = Modifier
             .height(customHeight.dp)
             .onFocusChanged {
@@ -57,8 +54,14 @@ fun CustomTextField(
                         text = placeholder ?: "",
                     )
                 } else {
-                    Text(
-                        text =  value,
+                    BasicTextField(
+                        value =  value,
+                        onValueChange = { handleValue(it) },
+                        textStyle= TextStyle(
+                            color = BlueApp
+                        ),
+                        maxLines = 15,
+                        cursorBrush = SolidColor(Color.Green),
                     )
                 }
 
