@@ -30,7 +30,6 @@ import javax.inject.Inject
 class EditViewModel @Inject constructor(
     private val apiService: ApiService,
     private val sharedPref: MySharedPref
-
 ): ViewModel() {
 
     enum class EditState {
@@ -86,15 +85,10 @@ class EditViewModel @Inject constructor(
     private var fetchState: FetchState? = null
     private val headers = HashMap<String, String>()
 
-   /* init {
-        viewModelScope.launch {
-            _fetchArticleSharedFlow.emit(articleIdStateFlow.value)
-        }
-    }*/
 
-    fun updateArticleId(articleId: Long) {
+    fun updateArticleIdAndFetch(articleId: Long) {
        _articleIdStateFlow.value = articleId
-
+        fetchArticle(articleId)
     }
     fun updateTitle(title: String) {
         _titleStateFlow.value = title

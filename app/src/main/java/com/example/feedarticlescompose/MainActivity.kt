@@ -86,7 +86,8 @@ fun AppNavigation() {
         ) {
             val editViewModel: EditViewModel = hiltViewModel()
             val articleId = it.arguments?.getLong("articleId") ?: 0L
-            EditScreen(navController, editViewModel, articleId)
+            editViewModel.updateArticleIdAndFetch(articleId)
+            EditScreen(navController, editViewModel)
         }
     }
 

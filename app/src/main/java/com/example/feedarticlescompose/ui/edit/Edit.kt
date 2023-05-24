@@ -2,7 +2,6 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
-import androidx.compose.material.RadioButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +26,6 @@ import com.example.feedarticlescompose.ui.edit.EditViewModel
 fun EditScreen(
     navController: NavHostController,
     viewModel: EditViewModel,
-    articleId: Long
 ) {
     val title by viewModel.titleStateFlow.collectAsState()
     val content by viewModel.contentStateFlow.collectAsState()
@@ -35,11 +33,11 @@ fun EditScreen(
     val selectedCategory by viewModel.selectedCategoryStateflow.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(true) {
+    /*LaunchedEffect(true) {
         viewModel.fetchArticleSharedFlow.collect {
             viewModel.fetchArticle(it)
         }
-    }
+    }*/
 
     LaunchedEffect(true) {
         viewModel.goToMainScreen.collect {
@@ -86,8 +84,7 @@ fun EditScreen(
         }
     }
 
-    viewModel.updateArticleId(articleId)
-    viewModel.fetchArticle(articleId)
+
 
     EditContent(
         context = context,
@@ -103,6 +100,7 @@ fun EditScreen(
 
     )
 }
+
 
 @Composable
 fun EditContent(
