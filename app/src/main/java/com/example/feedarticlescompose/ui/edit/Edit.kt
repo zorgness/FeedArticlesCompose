@@ -1,3 +1,4 @@
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -19,7 +20,6 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.R
-import com.example.feedarticlescompose.ui.creation.CreationViewModel
 import com.example.feedarticlescompose.ui.edit.EditViewModel
 
 
@@ -53,25 +53,44 @@ fun EditScreen(
 
 
      LaunchedEffect(true ) {
-         viewModel.messageSharedFlow.collect { message ->
-             when(message) {
+         viewModel.editStateSharedFlow.collect { state ->
+             when(state) {
                  EditViewModel.EditState.SUCCESS -> R.string.new_success
+                 EditViewModel.EditState.FAILURE -> R.string.new_failure
                  EditViewModel.EditState.ERROR_PARAM -> R.string.error_param
                  EditViewModel.EditState.ERROR_SERVER -> R.string.error_server
                  EditViewModel.EditState.ERROR_CONNECTION -> R.string.error_connection
-                 EditViewModel.EditState.ERROR_AUTHORIZATION -> R.string.error_authorization
                  EditViewModel.EditState.EMPTY_FIELDS -> R.string.empty_fields
                  EditViewModel.EditState.ERROR_TITLE -> R.string.error_title
-                 EditViewModel.EditState.FAILURE -> R.string.new_failure
+                 EditViewModel.EditState.ERROR_SERVICE -> R.string.error_service
+                 EditViewModel.EditState.WRONG_ID_PATH -> R.string.wrong_id_path
+                 EditViewModel.EditState.ERROR_AUTHORIZATION -> R.string.error_authorization
              }.let {
                 Toast.makeText(context , it, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    LaunchedEffect(true ) {
+        viewModel.fetchStateSharedFlow.collect { state ->
+            when(state) {
+                EditViewModel.FetchState.ERROR_CONNECTION -> R.string.error_connection
+                EditViewModel.FetchState.ERROR_SERVER -> R.string.error_server
+                EditViewModel.FetchState.UNKNOW_USER -> R.string.unknow_user
+                EditViewModel.FetchState.UNKNOW_ARTICLE -> R.string.unknow_article
+                EditViewModel.FetchState.ERROR_PARAM -> R.string.error_param
+                EditViewModel.FetchState.ERROR_SERVICE -> R.string.error_service
+            }.let {
+                Toast.makeText(context , it, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     viewModel.updateArticleId(articleId)
+    viewModel.fetchArticle(articleId)
 
     EditContent(
+        context = context,
         title,
         content,
         imageUrl,
@@ -87,6 +106,7 @@ fun EditScreen(
 
 @Composable
 fun EditContent(
+    context: Context,
     title: String,
     content: String,
     imageUrl: String,
@@ -106,25 +126,25 @@ fun EditContent(
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         Text(
-            text = "Edition Article",
+            text = context.getString(R.string.edit_article),
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
         )
 
         CustomTextField(
-            placeholder = "Titre" ,
+            placeholder = context.getString(R.string.title) ,
             value = title,
             handleValue = { handleTitle(it) }
         )
 
         CustomTextField(
-            placeholder = "Contenu" ,
+            placeholder = context.getString(R.string.content),
             value = content,
             handleValue = { handleContent(it) },
             customHeight = 120
         )
         CustomTextField(
-            placeholder = "Image URL" ,
+            placeholder =  context.getString(R.string.image_url),
             value = imageUrl,
             handleValue = { handleImageUrl(it) }
         )
@@ -154,7 +174,7 @@ fun EditContent(
             onClick = { handleClick() }
         ) {
             Text(
-                text = "Mettre à jour",
+                text = context.getString(R.string.update),
                 color = Color.White
             )
         }

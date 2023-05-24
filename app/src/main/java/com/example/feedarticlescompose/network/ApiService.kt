@@ -20,7 +20,7 @@ interface ApiService {
     @GET(ApiRoutes.ARTICLES)
     suspend fun fetchAllArticles (
         @HeaderMap headers: Map<String, String>,
-    ): Response<GetArticlesDto>?
+    ): Response<List<ArticleDto>>?
 
     @PUT(ApiRoutes.ARTICLES)
     suspend fun addNewArticle(

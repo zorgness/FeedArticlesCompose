@@ -1,13 +1,15 @@
 package com.example.feedarticlescompose.ui.register
 
-import ERROR_401
-import ERROR_403
+import ERROR_400
+import ERROR_503
+import HTTP_200
+import HTTP_303
+import HTTP_304
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.RegisterDto
 import com.example.feedarticlescompose.dataclass.SessionDto
 import com.example.feedarticlescompose.network.ApiService
-import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,11 +30,14 @@ class RegisterViewModel @Inject constructor(
 ): ViewModel() {
 
     enum class RegisterState {
-        ERROR_AUTHORIZATION,
+        ERROR_SERVICE,
         ERROR_CONNECTION,
         ERROR_SERVER,
         EMPTY_FIELDS,
         ERROR_CONFIRMATION,
+        ERROR_PARAM,
+        LOGIN_USED,
+        SUCCESS,
         FAILURE
     }
 
@@ -45,13 +50,13 @@ class RegisterViewModel @Inject constructor(
     private val _confirmStateFlow = MutableStateFlow("")
     val confirmStateFlow = _confirmStateFlow.asStateFlow()
 
-    private val _messageSharedFlow = MutableSharedFlow<RegisterState>()
-    val messageSharedFlow = _messageSharedFlow.asSharedFlow()
+    private val _registerStateSharedFlow = MutableSharedFlow<RegisterState>()
+    val registerStateSharedFlow = _registerStateSharedFlow.asSharedFlow()
 
     private val _goToMainSharedFlow = MutableSharedFlow<Screen>()
     val goToMainSharedFlow = _goToMainSharedFlow.asSharedFlow()
 
-    private var message: RegisterState? = null
+    private var registerState: RegisterState? = null
 
 
     fun updateLogin(login: String) {
@@ -83,7 +88,7 @@ class RegisterViewModel @Inject constructor(
 
                         when {
                             responseRegister?.body() == null ->
-                                message = RegisterState.ERROR_SERVER
+                                registerState = RegisterState.ERROR_SERVER
 
                             responseRegister.isSuccessful && (body != null) -> {
                                 sharedPref.saveToken(body.token ?: "")
@@ -91,27 +96,33 @@ class RegisterViewModel @Inject constructor(
                                 _goToMainSharedFlow.emit(Screen.Main)
                             }
 
-                            responseRegister.code() == ERROR_401 ->
-                                message = RegisterState.FAILURE
 
-                            responseRegister.code() == ERROR_403 ->
-                                message = RegisterState.ERROR_AUTHORIZATION
+                        }
+
+                      when(responseRegister?.code()) {
+                            HTTP_200 -> RegisterState.SUCCESS
+                            HTTP_303 -> RegisterState.LOGIN_USED
+                            HTTP_304 -> RegisterState.FAILURE
+                            ERROR_400 -> RegisterState.ERROR_PARAM
+                            ERROR_503 -> RegisterState.ERROR_SERVICE
+                            else -> null
+                        }.let {
+                            registerState = it
                         }
                     }
 
                 } catch (e: Exception) {
-                    message = RegisterState.ERROR_CONNECTION
+                    registerState = RegisterState.ERROR_CONNECTION
                 }
-            } else {
-                message = RegisterState.ERROR_CONFIRMATION
-            }
-        } else {
-            message = RegisterState.EMPTY_FIELDS
-        }
+            } else
+                registerState = RegisterState.ERROR_CONFIRMATION
+        } else
+            registerState = RegisterState.EMPTY_FIELDS
 
-        message?.let {
+
+        registerState?.let {
             viewModelScope.launch {
-                _messageSharedFlow.emit(it)
+                _registerStateSharedFlow.emit(it)
             }
         }
     }

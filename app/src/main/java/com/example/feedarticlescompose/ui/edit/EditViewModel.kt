@@ -1,7 +1,12 @@
 package com.example.feedarticlescompose.ui.edit
 
+import ERROR_400
 import ERROR_401
 import ERROR_403
+import ERROR_503
+import HTTP_201
+import HTTP_303
+import HTTP_304
 import USER_TOKEN
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -34,12 +39,23 @@ class EditViewModel @Inject constructor(
     enum class EditState {
         ERROR_SERVER,
         ERROR_CONNECTION,
+        ERROR_SERVICE,
+        WRONG_ID_PATH,
         ERROR_AUTHORIZATION,
         ERROR_PARAM,
         EMPTY_FIELDS,
         ERROR_TITLE,
         FAILURE,
         SUCCESS
+    }
+
+    enum class FetchState {
+        ERROR_SERVER,
+        ERROR_CONNECTION,
+        UNKNOW_USER,
+        UNKNOW_ARTICLE,
+        ERROR_PARAM,
+        ERROR_SERVICE
     }
 
     private val _articleIdStateFlow = MutableStateFlow(0L)
@@ -57,8 +73,11 @@ class EditViewModel @Inject constructor(
     private val _selectedCategoryStateflow = MutableStateFlow<Int>(2)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
-    private val _messageSharedFlow = MutableSharedFlow<EditState>()
-    val messageSharedFlow = _messageSharedFlow.asSharedFlow()
+    private val _editStateSharedFlow = MutableSharedFlow<EditState>()
+    val editStateSharedFlow = _editStateSharedFlow.asSharedFlow()
+
+    private val _fetchStateSharedFlow = MutableSharedFlow<FetchState>()
+    val fetchStateSharedFlow = _fetchStateSharedFlow.asSharedFlow()
 
     private val _fetchArticleSharedFlow = MutableSharedFlow<Long>()
     val fetchArticleSharedFlow = _fetchArticleSharedFlow.asSharedFlow()
@@ -66,14 +85,15 @@ class EditViewModel @Inject constructor(
     private val _goToMainScreen = MutableSharedFlow<Screen>()
     val goToMainScreen = _goToMainScreen.asSharedFlow()
 
-    private var message: EditState? = null
+    private var editState: EditState? = null
+    private var fetchState: FetchState? = null
     private val headers = HashMap<String, String>()
 
-    init {
+   /* init {
         viewModelScope.launch {
             _fetchArticleSharedFlow.emit(articleIdStateFlow.value)
         }
-    }
+    }*/
 
     fun updateArticleId(articleId: Long) {
        _articleIdStateFlow.value = articleId
@@ -131,32 +151,35 @@ class EditViewModel @Inject constructor(
 
                         when {
                             responseEditArticle?.body() == null ->
-                                message = EditState.ERROR_SERVER
+                                editState = EditState.ERROR_SERVER
 
                             responseEditArticle.isSuccessful && (body != null) -> {
-                                message = EditState.SUCCESS
+                                editState = EditState.SUCCESS
                                 _goToMainScreen.emit(Screen.Main)
                             }
+                        }
 
-                            responseEditArticle.code() == ERROR_401 ->
-                                message = EditState.ERROR_PARAM
-
-                            responseEditArticle.code() == ERROR_403 ->
-                                message = EditState.ERROR_AUTHORIZATION
+                        when(responseEditArticle?.code()) {
+                            HTTP_201 -> EditState.SUCCESS
+                            HTTP_303 -> EditState.WRONG_ID_PATH
+                            HTTP_304 -> EditState.FAILURE
+                            ERROR_400 -> EditState.ERROR_PARAM
+                            ERROR_401 -> EditState.ERROR_AUTHORIZATION
+                            ERROR_503 -> EditState.ERROR_SERVICE
                         }
 
                     }
 
                 } catch (e: Exception) {
-                    message = EditState.ERROR_CONNECTION
+                    editState = EditState.ERROR_CONNECTION
                 }
 
             } else {
-                message = EditState.ERROR_TITLE
+                editState = EditState.ERROR_TITLE
             }
 
         } else {
-            message = EditState.EMPTY_FIELDS
+            editState = EditState.EMPTY_FIELDS
         }
 
     }
@@ -177,7 +200,7 @@ class EditViewModel @Inject constructor(
                val body = responseFetchArticle?.body()
                when {
                    responseFetchArticle?.body() == null ->
-                       message = EditState.ERROR_SERVER
+                       fetchState = FetchState.ERROR_SERVER
 
                    responseFetchArticle.isSuccessful && (body != null) -> {
                        with(body.article) {
@@ -188,15 +211,28 @@ class EditViewModel @Inject constructor(
                        }
                    }
 
-                   responseFetchArticle.code() == ERROR_403 ->
-                       message = EditState.ERROR_AUTHORIZATION
+               }
 
+               when(responseFetchArticle?.code()) {
+                   HTTP_303 -> FetchState.UNKNOW_ARTICLE
+                   ERROR_400 -> FetchState.ERROR_PARAM
+                   ERROR_401 -> FetchState.UNKNOW_USER
+                   ERROR_503 -> FetchState.ERROR_SERVICE
+                   else -> null
+               }.let {
+                   fetchState = it
                }
 
            }
 
-       } catch (e: Exception) {
-            message = EditState.ERROR_CONNECTION
-       }
+           } catch (e: Exception) {
+                fetchState = FetchState.ERROR_CONNECTION
+           }
+
+        fetchState?.let {
+            viewModelScope.launch {
+                _fetchStateSharedFlow.emit(it)
+            }
+        }
     }
 }

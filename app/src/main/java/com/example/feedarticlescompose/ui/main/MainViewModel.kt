@@ -1,14 +1,12 @@
 package com.example.feedarticlescompose.ui.main
 
 import ERROR_400
-import ERROR_403
-import STATUS_REQUEST_ERROR
-import STATUS_REQUEST_OK
+import ERROR_401
+import ERROR_503
 import USER_TOKEN
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
-import com.example.feedarticlescompose.dataclass.GetArticlesDto
 import com.example.feedarticlescompose.network.ApiService
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
@@ -31,6 +29,7 @@ class MainViewModel @Inject constructor(
 ): ViewModel() {
 
     enum class MainState {
+        ERROR_SERVICE,
         ERROR_SERVER,
         ERROR_CONNECTION,
         ERROR_AUTHORIZATION,
@@ -55,8 +54,8 @@ class MainViewModel @Inject constructor(
     private val _articlesToShowStateFlow = MutableStateFlow(emptyList<ArticleDto>())
     val articlesToShowStateFlow = _articlesToShowStateFlow.asStateFlow()
 
-    private val _messageSharedFlow = MutableSharedFlow<MainState>()
-    val messageSharedFlow = _messageSharedFlow.asSharedFlow()
+    private val _mainStateSharedFlow = MutableSharedFlow<MainState>()
+    val mainStateSharedFlow = _mainStateSharedFlow.asSharedFlow()
 
     private val _goToLoginSharedFlow = MutableSharedFlow<Screen>()
     val goToLoginSharedFlow = _goToLoginSharedFlow.asSharedFlow()
@@ -66,7 +65,7 @@ class MainViewModel @Inject constructor(
 
     private var articlesFullList = emptyList<ArticleDto>()
 
-    private var message: MainState? = null
+    private var mainState: MainState? = null
 
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
@@ -110,45 +109,44 @@ class MainViewModel @Inject constructor(
 
             viewModelScope.launch {
                 try {
-                    val responseFetchArticles: Response<GetArticlesDto>? = withContext(Dispatchers.IO) {
+                    val responseFetchArticles: Response<List<ArticleDto>>? = withContext(Dispatchers.IO) {
                         apiService.fetchAllArticles(headers)
                     }
                     val body = responseFetchArticles?.body()
 
                     when {
                         responseFetchArticles?.body() == null ->
-                            message = MainState.ERROR_SERVER
+                            mainState = MainState.ERROR_SERVER
 
                         responseFetchArticles.isSuccessful && (body != null) -> {
-
-                            if(body.status == STATUS_REQUEST_OK) {
-                                articlesFullList = body.articles
-                                _isLoadingStateFlow.value = false
-                                fetchArticlesListToShow()
-                                delay(500)
-                                _isRefreshingStateFlow.value = false
-
-                            }
-
-                            if(body.status.contains(STATUS_REQUEST_ERROR))
-                                message = MainState.ERROR_PARAM
+                            articlesFullList = body
+                            _isLoadingStateFlow.value = false
+                            fetchArticlesListToShow()
+                            delay(500)
+                            _isRefreshingStateFlow.value = false
                         }
-
-                        responseFetchArticles.code() == ERROR_403 ->
-                            message = MainState.ERROR_AUTHORIZATION
-
-                        responseFetchArticles.code() == ERROR_400 ->
-                            message = MainState.ERROR_PARAM
                     }
+
+
+                    when(responseFetchArticles?.code()) {
+                        ERROR_400 -> MainState.ERROR_PARAM
+                        ERROR_401 -> MainState.ERROR_AUTHORIZATION
+                        ERROR_503 -> MainState.ERROR_SERVICE
+                        else -> null
+                    }.let {
+                        mainState = it
+                    }
+
+
                 } catch (e: Exception) {
-                    message = MainState.ERROR_CONNECTION
+                    mainState = MainState.ERROR_CONNECTION
                 }
             }
 
 
-            message?.let {
+            mainState?.let {
                 viewModelScope.launch {
-                    _messageSharedFlow.emit(it)
+                    _mainStateSharedFlow.emit(it)
                 }
             }
     }

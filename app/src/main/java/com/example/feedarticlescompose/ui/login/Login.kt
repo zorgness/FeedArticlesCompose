@@ -1,3 +1,4 @@
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,19 +10,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.example.feedarticlescompose.ui.login.LoginViewModel
-import com.example.feedarticlescompose.ui.theme.FeedArticlesComposeTheme
 import com.example.feedarticlescompose.utils.Screen
-import kotlinx.coroutines.flow.collect
 import com.example.feedarticlescompose.R
 
 
@@ -46,13 +42,15 @@ fun LoginScreen(
     }
 
     LaunchedEffect(true ) {
-        viewModel.messageSharedFlow.collect {message->
-            when(message) {
+        viewModel.loginStateSharedFlow.collect {state->
+            when(state) {
                 LoginViewModel.LoginState.ERROR_SERVER -> R.string.error_server
-                LoginViewModel.LoginState.ERROR_AUTHORIZATION -> R.string.error_authorization
                 LoginViewModel.LoginState.ERROR_CONNECTION -> R.string.error_connection
                 LoginViewModel.LoginState.WRONG_CREDENTIAL -> R.string.wrong_credential
                 LoginViewModel.LoginState.EMPTY_FIELDS -> R.string.empty_fields
+                LoginViewModel.LoginState.SECURITY_FAILURE -> R.string.security_failure
+                LoginViewModel.LoginState.ERROR_PARAM -> R.string.error_param
+                LoginViewModel.LoginState.ERROR_SERVICE -> R.string.error_service
             }.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }
@@ -60,6 +58,7 @@ fun LoginScreen(
     }
 
     LoginContent(
+        context = context,
         login = login,
         password = password,
         handleLogin = { viewModel.updateLogin(it)},
@@ -73,6 +72,7 @@ fun LoginScreen(
 
 @Composable
 fun LoginContent(
+    context: Context,
     login: String,
     password: String,
     handleLogin: (String) -> Unit,
@@ -87,7 +87,7 @@ fun LoginContent(
             .padding(40.dp)
     ) {
         Text(
-            text = "Connectez-vous",
+            text = context.getString(R.string.log_to_account),
             fontWeight = FontWeight.Bold,
             fontSize = 32.sp,
             modifier = Modifier
@@ -105,13 +105,13 @@ fun LoginContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CustomTextField(
-                placeholder = "Login" ,
+                placeholder = context.getString(R.string.login),
                 value = login,
                 handleValue = { handleLogin(it) }
             )
             Spacer(modifier = Modifier.height(40.dp))
             CustomTextField(
-                placeholder = "Password" ,
+                placeholder = context.getString(R.string.password),
                 value = password,
                 handleValue = { handlePassword(it) }
             )
@@ -132,7 +132,7 @@ fun LoginContent(
                 onClick = { handleClick() }
             ) {
                 Text(
-                    text = "Se connecter",
+                    text = context.getString(R.string.connect),
                     color = Color.White
                 )
             }
@@ -140,9 +140,8 @@ fun LoginContent(
             Spacer(modifier = Modifier.height(30.dp))
 
             Text(
-                text = "Pas de compte ? inscrivez-vous !",
+                text = context.getString(R.string.no_account_yet),
                 modifier = Modifier.clickable { goToRegister() }
-
             )
         }
     }
