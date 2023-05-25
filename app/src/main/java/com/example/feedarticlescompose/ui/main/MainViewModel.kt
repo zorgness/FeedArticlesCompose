@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.net.SocketException
 import javax.inject.Inject
+import com.example.feedarticlescompose.utils.Result
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -32,23 +33,47 @@ class MainViewModel @Inject constructor(
     private val sharedPref: MySharedPref
 ): ViewModel() {
 
-    enum class MainState {
-        ERROR_SERVICE,
-        ERROR_SERVER,
-        ERROR_CONNECTION,
-        ERROR_AUTHORIZATION,
-        ERROR_PARAM
+    enum class MainState(val httpStatus: Int?){
+        ERROR_SERVICE(ERROR_503),
+        ERROR_SERVER(null),
+        ERROR_CONNECTION(null),
+        ERROR_AUTHORIZATION(ERROR_401),
+        ERROR_PARAM(ERROR_400);
+
+        companion object {
+            fun getState(httpStatus: Int): MainState? {
+                MainState.values().forEach { state ->
+                    if (state.httpStatus == httpStatus) {
+                        return state
+                    }
+                }
+                return null
+            }
+        }
     }
 
-    enum class DeleteState {
-        SUCCESS,
-        FAILURE,
-        ERROR_SERVICE,
-        ERROR_SERVER,
-        ERROR_CONNECTION,
-        ERROR_AUTHORIZATION,
-        ERROR_PARAM
+    enum class DeleteState(val httpStatus: Int?) {
+        SUCCESS(HTTP_201),
+        FAILURE(HTTP_304),
+        ERROR_SERVICE(ERROR_503),
+        ERROR_SERVER(null),
+        ERROR_CONNECTION(null),
+        ERROR_AUTHORIZATION(ERROR_401),
+        ERROR_PARAM(ERROR_400);
+
+        companion object {
+            fun getState(httpStatus: Int): DeleteState? {
+                values().forEach { state ->
+                    if (state.httpStatus == httpStatus) {
+                        return state
+                    }
+                }
+                return null
+            }
+        }
     }
+
+
 
     /*
     *  KEEP TRACK OF CURRENT USER
@@ -149,39 +174,44 @@ class MainViewModel @Inject constructor(
         try {
             viewModelScope.launch {
 
-                val responseFetchArticles: Response<List<ArticleDto>>? = withContext(Dispatchers.IO) {
-                    apiService.fetchAllArticles(headers)
-                }
-                val body = responseFetchArticles?.body()
+                withContext(Dispatchers.IO) {
+                    val responseFetchArticles = apiService.fetchAllArticles(headers)
 
-                when {
-                    responseFetchArticles == null ->
-                        _mainStateSharedFlow.emit(MainState.ERROR_SERVER)
+                    if(responseFetchArticles?.isSuccessful == true) {
+                        Result.Success(
+                           responseFetchArticles.body(),
+                           responseFetchArticles.code()
+                        ).let { result ->
+                               articlesFullList = result.data ?: emptyList()
+                               _isLoadingStateFlow.value = false
+                               fetchArticlesListToShow()
+                               delay(500)
+                               _isRefreshingStateFlow.value = false
 
-                    responseFetchArticles.isSuccessful && (body != null) -> {
-                        articlesFullList = body
-                        _isLoadingStateFlow.value = false
-                        fetchArticlesListToShow()
-                        delay(500)
-                        _isRefreshingStateFlow.value = false
+                            MainState.getState(result.httpStatus)?.let { state ->
+                                _mainStateSharedFlow.emit(state)
+                            }
+                        }
+                    } else {
+                        Result.HttpStatus(responseFetchArticles?.code() ?: 0)
+                           .let { result->
+                                MainState.getState(result.httpStatus)?.let { state ->
+                                    _mainStateSharedFlow.emit(state)
+                                }
+                           }
                     }
                 }
-
-                    when(responseFetchArticles?.code()) {
-                        ERROR_400 -> MainState.ERROR_PARAM
-                        ERROR_401 -> MainState.ERROR_AUTHORIZATION
-                        ERROR_503 -> MainState.ERROR_SERVICE
-                        else -> null
-                    }?.let {
-                        if(isLoggedIn)
-                            _mainStateSharedFlow.emit(it)
-                    }
             }
 
         } catch (e: Exception) {
-            viewModelScope.launch {
-                _mainStateSharedFlow.emit(MainState.ERROR_CONNECTION)
+            Result.ExeptionError(
+                MainState.ERROR_CONNECTION
+            ).let { result->
+                viewModelScope.launch {
+                    _mainStateSharedFlow.emit(result.state)
+                }
             }
+
         } catch (se: SocketException) {
             Log.d("network", "Network is unreachable")
         }
@@ -195,43 +225,47 @@ class MainViewModel @Inject constructor(
         try {
             viewModelScope.launch {
 
-                val responseDeleteArticle: Response<Unit>? = withContext(Dispatchers.IO) {
-                    apiService.deleteArticle(articleId, headers)
-                }
+                withContext(Dispatchers.IO) {
+                    val responseDeleteArticle = apiService.deleteArticle(articleId, headers)
 
-                when  {
-                    responseDeleteArticle == null  ->
-                        _deleteStateSharedFlow.emit(DeleteState.ERROR_SERVER)
-
-                    responseDeleteArticle.isSuccessful ->
-                        fetchAllArticles()
-                }
-
-                when(responseDeleteArticle?.code()) {
-                    HTTP_201 -> DeleteState.SUCCESS
-                    HTTP_304 -> DeleteState.FAILURE
-                    ERROR_400 -> DeleteState.ERROR_PARAM
-                    ERROR_401 -> DeleteState.ERROR_AUTHORIZATION
-                    ERROR_503 -> DeleteState.ERROR_SERVICE
-                    else -> null
-                }?.let {
-
-                    _deleteStateSharedFlow.emit(it)
+                    if(responseDeleteArticle?.isSuccessful == true) {
+                        Result.Success(
+                            null,
+                            responseDeleteArticle.code()
+                        ).let {result ->
+                                fetchAllArticles()
+                                DeleteState.getState(result.httpStatus)?.let { state ->
+                                    _deleteStateSharedFlow.emit(state)
+                                }
+                        }
+                    } else {
+                        Result.HttpStatus(responseDeleteArticle?.code() ?: 0)
+                            .let { result ->
+                                    DeleteState.getState(result.httpStatus)?.let { state ->
+                                        _deleteStateSharedFlow.emit(state)
+                                    }
+                            }
+                    }
                 }
             }
 
         } catch (e: Exception) {
-            viewModelScope.launch {
-                _deleteStateSharedFlow.emit(DeleteState.ERROR_CONNECTION)
+            Result.ExeptionError(
+                DeleteState.ERROR_CONNECTION
+            ).let {result->
+                viewModelScope.launch {
+                    _deleteStateSharedFlow.emit(result.state)
+                }
             }
         }
     }
 
     fun logout() {
         isLoggedIn = false
+        sharedPref.clearSharedPref()
         viewModelScope.launch {
             _goToLoginSharedFlow.emit(Screen.Login)
         }
-        sharedPref.clearSharedPref()
+
     }
 }

@@ -52,8 +52,6 @@ class LoginViewModel @Inject constructor(
     }
 
 
-
-
     /*
     *  KEEP TRACK OF EACH FIELDS
     */
