@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import javax.inject.Inject
+import com.example.feedarticlescompose.utils.Result
 
 @HiltViewModel
 class EditViewModel @Inject constructor(
@@ -33,26 +34,48 @@ class EditViewModel @Inject constructor(
     private val sharedPref: MySharedPref
 ): ViewModel() {
 
-    enum class EditState {
-        ERROR_SERVER,
-        ERROR_CONNECTION,
-        ERROR_SERVICE,
-        WRONG_ID_PATH,
-        ERROR_AUTHORIZATION,
-        ERROR_PARAM,
-        EMPTY_FIELDS,
-        ERROR_TITLE,
-        FAILURE,
-        SUCCESS
+    enum class EditState(val httpStatus: Int?) {
+        ERROR_SERVER(null),
+        ERROR_CONNECTION(null),
+        ERROR_SERVICE(ERROR_503),
+        WRONG_ID_PATH(HTTP_303),
+        ERROR_AUTHORIZATION(ERROR_401),
+        ERROR_PARAM(ERROR_400),
+        EMPTY_FIELDS(null),
+        ERROR_TITLE(null),
+        FAILURE(HTTP_304),
+        SUCCESS(HTTP_201);
+        companion object {
+            fun getState(httpStatus: Int): EditState? {
+                EditState.values().forEach { state->
+                    if(state.httpStatus == httpStatus) {
+                        return state
+                    }
+                }
+                return null
+            }
+        }
     }
 
-    enum class FetchState {
-        ERROR_SERVER,
-        ERROR_CONNECTION,
-        UNKNOW_USER,
-        UNKNOW_ARTICLE,
-        ERROR_PARAM,
-        ERROR_SERVICE
+
+    enum class FetchState (val httpStatus: Int?) {
+        ERROR_SERVER(null),
+        ERROR_CONNECTION(null),
+        UNKNOW_USER(ERROR_401),
+        UNKNOW_ARTICLE(HTTP_303),
+        ERROR_PARAM(ERROR_400),
+        ERROR_SERVICE(ERROR_503);
+
+        companion object {
+            fun getState(httpStatus: Int): FetchState? {
+                values().forEach {state->
+                    if(state.httpStatus == httpStatus) {
+                        return state
+                    }
+                }
+                return null
+            }
+        }
     }
 
    /**
@@ -127,8 +150,8 @@ class EditViewModel @Inject constructor(
 
                     viewModelScope.launch {
 
-                        val responseEditArticle: Response<Unit>? = withContext(Dispatchers.IO) {
-                            apiService.updateArticle(
+                        withContext(Dispatchers.IO) {
+                            val responseEdit = apiService.updateArticle(
                                 articleId = articleIdToUpdate ?: 0L,
                                 headers = headers,
                                 UpdateArticleDto(
@@ -139,45 +162,54 @@ class EditViewModel @Inject constructor(
                                     cat = selectedCategoryStateflow.value.plus(1)
                                 )
                             )
-                        }
 
-
-                       when {
-                            responseEditArticle == null ->
-                                _editStateSharedFlow.emit(EditState.ERROR_SERVER)
-
-                            responseEditArticle.isSuccessful -> {
-                                _goToMainScreen.emit(Screen.Main)
+                            if(responseEdit?.isSuccessful == true) {
+                               Result.Success(
+                                   null,
+                                   responseEdit.code()
+                               ).let { result ->
+                                   EditState.getState(result.httpStatus)?.let { state ->
+                                       _editStateSharedFlow.emit(state)
+                                       _goToMainScreen.emit(Screen.Main)
+                                   }
+                               }
+                            } else {
+                                Result.HttpStatus(
+                                   responseEdit?.code() ?: 0
+                                ).let { result ->
+                                    EditState.getState(result.httpStatus)?.let { state ->
+                                       _editStateSharedFlow.emit(state)
+                                    }
+                                }
                             }
-                        }
-
-                        when(responseEditArticle?.code()) {
-                            HTTP_201 -> EditState.SUCCESS
-                            HTTP_303 -> EditState.WRONG_ID_PATH
-                            HTTP_304 -> EditState.FAILURE
-                            ERROR_400 -> EditState.ERROR_PARAM
-                            ERROR_401 -> EditState.ERROR_AUTHORIZATION
-                            ERROR_503 -> EditState.ERROR_SERVICE
-                            else -> null
-                        }?.let {
-                            _editStateSharedFlow.emit(it)
                         }
                     }
 
                 } catch (e: Exception) {
-                    viewModelScope.launch {
-                        _editStateSharedFlow.emit(EditState.ERROR_CONNECTION)
+                    Result.ExeptionError(
+                        EditState.ERROR_CONNECTION
+                    ).let {
+                        viewModelScope.launch {
+                            _editStateSharedFlow.emit(it.state)
+                        }
                     }
                 }
 
             } else
-                viewModelScope.launch {
-                    _editStateSharedFlow.emit(EditState.ERROR_TITLE)
+                Result.Failure(
+                    EditState.ERROR_TITLE
+                ).let {
+                    viewModelScope.launch {
+                        _editStateSharedFlow.emit(it.state)
+                    }
                 }
-
         } else
-            viewModelScope.launch {
-                _editStateSharedFlow.emit(EditState.EMPTY_FIELDS)
+            Result.Failure(
+                EditState.EMPTY_FIELDS
+            ).let {
+                viewModelScope.launch {
+                    _editStateSharedFlow.emit(it.state)
+                }
             }
     }
 
@@ -188,39 +220,45 @@ class EditViewModel @Inject constructor(
         try {
 
             viewModelScope.launch {
-                val responseFetchArticle: Response<ArticleDto>? = withContext(Dispatchers.IO) {
-                   apiService.fetchArticleById(headers, articleId)
-                }
-                val body = responseFetchArticle?.body()
+                withContext(Dispatchers.IO) {
+                   val responseFetchArticle = apiService.fetchArticleById(headers, articleId)
 
-                when {
-                    responseFetchArticle == null ->
-                        _fetchStateSharedFlow.emit(FetchState.ERROR_SERVER)
-
-                    responseFetchArticle.isSuccessful && (body != null) -> {
-                        with(body) {
-                           updateTitle(titre)
-                           updateContent(descriptif)
-                           updateImageUrl(urlImage)
-                           updateSelectedCategory(categorie.minus(1))
+                    if(responseFetchArticle?.isSuccessful == true) {
+                        Result.Success(
+                            responseFetchArticle.body(),
+                            responseFetchArticle.code()
+                        ).let { result ->
+                            if(result.data != null) {
+                                with(result.data) {
+                                    updateTitle(titre)
+                                    updateContent(descriptif)
+                                    updateImageUrl(urlImage)
+                                    updateSelectedCategory(categorie.minus(1))
+                                }
+                            }
+                            FetchState.getState(result.httpStatus)?.let { state ->
+                                _fetchStateSharedFlow.emit(state)
+                            }
+                        }
+                    } else {
+                        Result.HttpStatus(
+                            responseFetchArticle?.code() ?: 0
+                        ).let {result ->
+                            FetchState.getState(result.httpStatus)?.let { state->
+                                _fetchStateSharedFlow.emit(state)
+                            }
                         }
                     }
-               }
-
-               when(responseFetchArticle?.code()) {
-                   HTTP_303 -> FetchState.UNKNOW_ARTICLE
-                   ERROR_400 -> FetchState.ERROR_PARAM
-                   ERROR_401 -> FetchState.UNKNOW_USER
-                   ERROR_503 -> FetchState.ERROR_SERVICE
-                   else -> null
-               }?.let {
-                   _fetchStateSharedFlow.emit(it)
                }
            }
 
         } catch (e: Exception) {
-                viewModelScope.launch {
-                    _fetchStateSharedFlow.emit(FetchState.ERROR_CONNECTION)
+                Result.ExeptionError(
+                    FetchState.ERROR_CONNECTION
+                ).let { result ->
+                    viewModelScope.launch {
+                        _fetchStateSharedFlow.emit(result.state)
+                    }
                 }
 
            }

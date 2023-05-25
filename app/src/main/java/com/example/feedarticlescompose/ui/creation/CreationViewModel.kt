@@ -140,6 +140,7 @@ class CreationViewModel @Inject constructor(
                                     CreationState.getState(result.httpStatus)
                                         ?.let { state ->
                                             _creationStateSharedFlow.emit(state)
+                                            _goToMainScreen.emit(Screen.Main)
                                         }
                                 }
                             } else {
