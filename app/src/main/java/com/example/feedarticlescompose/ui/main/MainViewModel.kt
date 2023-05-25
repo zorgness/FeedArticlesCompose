@@ -6,6 +6,7 @@ import ERROR_503
 import HTTP_201
 import HTTP_304
 import USER_TOKEN
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+import java.net.SocketException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -103,6 +105,8 @@ class MainViewModel @Inject constructor(
     private var articlesFullList = emptyList<ArticleDto>()
     private val headers = HashMap<String, String>()
 
+    private var isLoggedIn = true
+
     fun updateSelectedCategory(position: Int) {
         _selectedCategoryStateflow.value = position
         fetchArticlesListToShow()
@@ -169,7 +173,8 @@ class MainViewModel @Inject constructor(
                         ERROR_503 -> MainState.ERROR_SERVICE
                         else -> null
                     }?.let {
-                        _mainStateSharedFlow.emit(it)
+                        if(isLoggedIn)
+                            _mainStateSharedFlow.emit(it)
                     }
             }
 
@@ -177,6 +182,8 @@ class MainViewModel @Inject constructor(
             viewModelScope.launch {
                 _mainStateSharedFlow.emit(MainState.ERROR_CONNECTION)
             }
+        } catch (se: SocketException) {
+            Log.d("network", "Network is unreachable")
         }
     }
 
@@ -208,6 +215,7 @@ class MainViewModel @Inject constructor(
                     ERROR_503 -> DeleteState.ERROR_SERVICE
                     else -> null
                 }?.let {
+
                     _deleteStateSharedFlow.emit(it)
                 }
             }
@@ -220,9 +228,10 @@ class MainViewModel @Inject constructor(
     }
 
     fun logout() {
-        sharedPref.clearSharedPref()
+        isLoggedIn = false
         viewModelScope.launch {
             _goToLoginSharedFlow.emit(Screen.Login)
         }
+        sharedPref.clearSharedPref()
     }
 }

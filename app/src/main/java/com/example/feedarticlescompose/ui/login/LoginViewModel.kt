@@ -5,6 +5,7 @@ import ERROR_401
 import ERROR_503
 import HTTP_200
 import HTTP_304
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.SessionDto
@@ -59,6 +60,9 @@ class LoginViewModel @Inject constructor(
     private val _goToMainSharedFlow = MutableSharedFlow<Screen>()
     val goToMainSharedFlow = _goToMainSharedFlow.asSharedFlow()
 
+    private val _curentStateStateFlow = MutableStateFlow<LoginState?>(null)
+    val curentStateStateFlow = _curentStateStateFlow.asStateFlow()
+
     fun updateLogin(login: String) {
         _loginStateFlow.value = login
     }
@@ -102,6 +106,7 @@ class LoginViewModel @Inject constructor(
                         else -> null
                     }?.let {
                         _loginStateSharedFlow.emit(it)
+
                     }
                 }
 

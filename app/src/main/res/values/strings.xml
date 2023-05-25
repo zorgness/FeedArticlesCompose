@@ -49,6 +49,11 @@
     <string name="delete_success">article supprimé</string>
     <string name="delete_failure">article non supprimé</string>
 
+    <!--  DIVERS-->
+    <string name="exit_app">bye bye</string>
+
+
+
 
 
 

@@ -106,8 +106,6 @@ fun MainScreen(
         }
     }
 
-    //viewModel.fetchAllArticles()
-
     MainContent(
         selectedCategory = selectedCategory,
         articlesList = articlesList,
@@ -380,7 +378,7 @@ fun ItemArticle(
             AnimatedVisibility(
                 visible = item.id == isExpandedId,
                 enter = expandVertically(),
-                exit = fadeOut() + slideOutVertically()
+                exit =  slideOutVertically()
             ) {
                 Box(
                     modifier = Modifier
