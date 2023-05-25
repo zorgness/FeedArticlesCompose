@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.RegisterDto
 import com.example.feedarticlescompose.dataclass.SessionDto
 import com.example.feedarticlescompose.network.ApiService
+import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import javax.inject.Inject
+import com.example.feedarticlescompose.utils.Result
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -29,17 +31,29 @@ class RegisterViewModel @Inject constructor(
     private val sharedPref: MySharedPref
 ): ViewModel() {
 
-    enum class RegisterState {
-        ERROR_SERVICE,
-        ERROR_CONNECTION,
-        ERROR_SERVER,
-        EMPTY_FIELDS,
-        ERROR_CONFIRMATION,
-        ERROR_PARAM,
-        LOGIN_USED,
-        SUCCESS,
-        FAILURE
+    enum class RegisterState(val httpStatus: Int?) {
+        ERROR_SERVICE(ERROR_503),
+        ERROR_CONNECTION(null),
+        ERROR_SERVER(null),
+        EMPTY_FIELDS(null),
+        ERROR_CONFIRMATION(null),
+        ERROR_PARAM(ERROR_400),
+        LOGIN_USED(HTTP_303),
+        SUCCESS(HTTP_200),
+        FAILURE(HTTP_304);
+
+        companion object {
+            fun getState(httpStatus: Int): RegisterState? {
+                RegisterState.values().forEach { state ->
+                    if (state.httpStatus == httpStatus) {
+                        return state
+                    }
+                }
+                return null
+            }
+        }
     }
+
 
     private val _loginStateFlow = MutableStateFlow("")
     val loginStateFlow = _loginStateFlow.asStateFlow()
@@ -78,48 +92,65 @@ class RegisterViewModel @Inject constructor(
                 try {
 
                     viewModelScope.launch {
-                        val responseRegister: Response<SessionDto>? = withContext(Dispatchers.IO) {
-                            apiService.register(RegisterDto(loginStateFlow.value, passwordStateFlow.value))
-                        }
+                        withContext(Dispatchers.IO) {
+                            val responseRegister = apiService.register(
+                                RegisterDto(loginStateFlow.value, passwordStateFlow.value)
+                            )
 
-                        val body = responseRegister?.body()
+                            if(responseRegister?.isSuccessful == true ) {
 
-                        when {
-                            responseRegister == null ->
-                                _registerStateSharedFlow.emit(RegisterState.ERROR_SERVER)
+                                Result.Success(
+                                    responseRegister.body(),
+                                    responseRegister.code()
+                                ).let {result->
+                                    sharedPref.saveToken(result.data?.token ?: "")
+                                    sharedPref.saveUserId(result.data?.id ?: 0)
+                                    _goToMainSharedFlow.emit(Screen.Main)
 
-                            responseRegister.isSuccessful && (body != null) -> {
-                                sharedPref.saveToken(body.token ?: "")
-                                sharedPref.saveUserId(body.id)
-                                _goToMainSharedFlow.emit(Screen.Main)
+                                    RegisterState.getState(result.httpStatus)
+                                        ?.let { state->
+                                            _registerStateSharedFlow.emit(state)
+                                        }
+                                }
+
+                            } else {
+                                Result.HttpStatus(responseRegister?.code() ?: 0)
+                                    .let { result->
+                                        RegisterState.getState(result.httpStatus)?.let { state->
+                                            _registerStateSharedFlow.emit(state)
+                                        }
+                                    }
                             }
-                        }
-
-                      when(responseRegister?.code()) {
-                            HTTP_200 -> RegisterState.SUCCESS
-                            HTTP_303 -> RegisterState.LOGIN_USED
-                            HTTP_304 -> RegisterState.FAILURE
-                            ERROR_400 -> RegisterState.ERROR_PARAM
-                            ERROR_503 -> RegisterState.ERROR_SERVICE
-                            else -> null
-                        }?.let {
-                          _registerStateSharedFlow.emit(it)
                         }
                     }
 
                 } catch (e: Exception) {
-                   viewModelScope.launch {
-                       _registerStateSharedFlow.emit(RegisterState.ERROR_CONNECTION)
-                   }
+                    Result.ExeptionError(
+                        RegisterState.ERROR_CONNECTION
+                    ).let {
+                        viewModelScope.launch {
+                            _registerStateSharedFlow.emit(it.state)
+                        }
+                    }
+
                 }
             } else
-                viewModelScope.launch {
-                    _registerStateSharedFlow.emit(RegisterState.ERROR_CONFIRMATION)
+                Result.Failure(
+                    RegisterState.ERROR_CONFIRMATION
+                ).let {
+                    viewModelScope.launch {
+                        _registerStateSharedFlow.emit(it.state)
+                    }
                 }
 
         } else
-            viewModelScope.launch {
-                _registerStateSharedFlow.emit(RegisterState.EMPTY_FIELDS)
+            Result.Failure(
+                RegisterState.EMPTY_FIELDS
+            ).let {
+                viewModelScope.launch {
+                    _registerStateSharedFlow.emit(it.state)
+                }
             }
+
     }
 }

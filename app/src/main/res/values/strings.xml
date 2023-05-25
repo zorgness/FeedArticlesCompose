@@ -11,7 +11,7 @@
     <!--LOGIN REGISTER-->
     <string name="wrong_credentials">mauvais login ou mot de passe</string>
     <string name="empty_fields">tous les champs doivent être remplis</string>
-    <string name="error_confirmation">mot de passe différents de confirmation</string>
+    <string name="error_confirmation">mot de passe différent de confirmation</string>
     <string name="account_failed">nouveau compte non créé</string>
     <string name="account_success">nouveau compte ajouté</string>
     <string name="login_used">login déjà utilisé</string>
