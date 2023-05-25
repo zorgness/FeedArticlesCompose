@@ -182,9 +182,14 @@ fun MainContent(
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp)
                 ) {
-                    items(items = articlesList) {item->
+                    items(
+                        items = articlesList,
+                        key = {item -> item.id}
+                    ) {item->
 
-
+                        /*
+                        *  IF CURRENT USER IS CREATOR
+                        */
                         if(item.idU == currentUserId) {
 
                             val dismissState = rememberDismissState()
@@ -209,7 +214,8 @@ fun MainContent(
                                         Modifier
                                             .fillMaxSize()
                                             .background(Color.Red)
-                                            .padding(horizontal = Dp(20f)),
+                                            //.padding(horizontal = Dp(20f)),
+                                                ,
                                         contentAlignment = Alignment.CenterEnd
                                     ) {
                                         Icon(

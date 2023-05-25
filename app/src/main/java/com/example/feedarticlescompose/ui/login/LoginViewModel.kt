@@ -3,6 +3,7 @@ package com.example.feedarticlescompose.ui.login
 import ERROR_400
 import ERROR_401
 import ERROR_503
+import HTTP_200
 import HTTP_304
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,6 +38,8 @@ class LoginViewModel @Inject constructor(
         EMPTY_FIELDS,
         ERROR_SERVICE
     }
+
+
 
     private val _loginStateFlow = MutableStateFlow("")
     val loginStateFlow = _loginStateFlow.asStateFlow()
@@ -75,8 +78,9 @@ class LoginViewModel @Inject constructor(
 
                     val body = responseLogin?.body()
 
+
                     when {
-                        responseLogin?.body() == null ->
+                        responseLogin == null ->
                             loginState = LoginState.ERROR_SERVER
 
                         responseLogin.isSuccessful && (body != null) -> {
