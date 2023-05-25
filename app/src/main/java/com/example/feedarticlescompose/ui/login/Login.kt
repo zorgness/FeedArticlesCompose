@@ -1,4 +1,5 @@
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.navigation.NavHostController
 import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.utils.Screen
 import com.example.feedarticlescompose.R
+import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
@@ -43,6 +45,7 @@ fun LoginScreen(
 
     LaunchedEffect(true ) {
         viewModel.loginStateSharedFlow.collect {state->
+            Log.d("screen state", state.name)
             when(state) {
                 LoginViewModel.LoginState.ERROR_SERVER -> R.string.error_server
                 LoginViewModel.LoginState.ERROR_CONNECTION -> R.string.error_connection

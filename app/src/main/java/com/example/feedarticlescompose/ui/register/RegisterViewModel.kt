@@ -56,8 +56,6 @@ class RegisterViewModel @Inject constructor(
     private val _goToMainSharedFlow = MutableSharedFlow<Screen>()
     val goToMainSharedFlow = _goToMainSharedFlow.asSharedFlow()
 
-    private var registerState: RegisterState? = null
-
 
     fun updateLogin(login: String) {
         _loginStateFlow.value = login
@@ -88,15 +86,13 @@ class RegisterViewModel @Inject constructor(
 
                         when {
                             responseRegister == null ->
-                                registerState = RegisterState.ERROR_SERVER
+                                _registerStateSharedFlow.emit(RegisterState.ERROR_SERVER)
 
                             responseRegister.isSuccessful && (body != null) -> {
                                 sharedPref.saveToken(body.token ?: "")
                                 sharedPref.saveUserId(body.id)
                                 _goToMainSharedFlow.emit(Screen.Main)
                             }
-
-
                         }
 
                       when(responseRegister?.code()) {
@@ -106,24 +102,24 @@ class RegisterViewModel @Inject constructor(
                             ERROR_400 -> RegisterState.ERROR_PARAM
                             ERROR_503 -> RegisterState.ERROR_SERVICE
                             else -> null
-                        }.let {
-                            registerState = it
+                        }?.let {
+                          _registerStateSharedFlow.emit(it)
                         }
                     }
 
                 } catch (e: Exception) {
-                    registerState = RegisterState.ERROR_CONNECTION
+                   viewModelScope.launch {
+                       _registerStateSharedFlow.emit(RegisterState.ERROR_CONNECTION)
+                   }
                 }
             } else
-                registerState = RegisterState.ERROR_CONFIRMATION
+                viewModelScope.launch {
+                    _registerStateSharedFlow.emit(RegisterState.ERROR_CONFIRMATION)
+                }
+
         } else
-            registerState = RegisterState.EMPTY_FIELDS
-
-
-        registerState?.let {
             viewModelScope.launch {
-                _registerStateSharedFlow.emit(it)
+                _registerStateSharedFlow.emit(RegisterState.EMPTY_FIELDS)
             }
-        }
     }
 }

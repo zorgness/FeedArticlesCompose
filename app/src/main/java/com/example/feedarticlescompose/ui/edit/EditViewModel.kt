@@ -85,8 +85,6 @@ class EditViewModel @Inject constructor(
     private val _goToMainScreen = MutableSharedFlow<Screen>()
     val goToMainScreen = _goToMainScreen.asSharedFlow()
 
-    private var editState: EditState? = null
-    private var fetchState: FetchState? = null
     private val headers = HashMap<String, String>()
     private var articleIdToUpdate: Long? = null
 
@@ -146,7 +144,7 @@ class EditViewModel @Inject constructor(
 
                        when {
                             responseEditArticle == null ->
-                                editState = EditState.ERROR_SERVER
+                                _editStateSharedFlow.emit(EditState.ERROR_SERVER)
 
                             responseEditArticle.isSuccessful -> {
                                 _goToMainScreen.emit(Screen.Main)
@@ -161,27 +159,26 @@ class EditViewModel @Inject constructor(
                             ERROR_401 -> EditState.ERROR_AUTHORIZATION
                             ERROR_503 -> EditState.ERROR_SERVICE
                             else -> null
-                        }.let {
-                            editState = it
+                        }?.let {
+                            _editStateSharedFlow.emit(it)
                         }
                     }
 
                 } catch (e: Exception) {
-                    editState = EditState.ERROR_CONNECTION
+                    viewModelScope.launch {
+                        _editStateSharedFlow.emit(EditState.ERROR_CONNECTION)
+                    }
                 }
 
             } else
-                editState = EditState.ERROR_TITLE
+                viewModelScope.launch {
+                    _editStateSharedFlow.emit(EditState.ERROR_TITLE)
+                }
 
         } else
-             editState = EditState.EMPTY_FIELDS
-
-        editState?.let {
             viewModelScope.launch {
-                _editStateSharedFlow.emit(it)
+                _editStateSharedFlow.emit(EditState.EMPTY_FIELDS)
             }
-        }
-
     }
 
     private fun fetchArticle(articleId: Long) {
@@ -198,7 +195,7 @@ class EditViewModel @Inject constructor(
 
                 when {
                     responseFetchArticle == null ->
-                        fetchState = FetchState.ERROR_SERVER
+                        _fetchStateSharedFlow.emit(FetchState.ERROR_SERVER)
 
                     responseFetchArticle.isSuccessful && (body != null) -> {
                         with(body) {
@@ -216,19 +213,16 @@ class EditViewModel @Inject constructor(
                    ERROR_401 -> FetchState.UNKNOW_USER
                    ERROR_503 -> FetchState.ERROR_SERVICE
                    else -> null
-               }.let {
-                   fetchState = it
+               }?.let {
+                   _fetchStateSharedFlow.emit(it)
                }
            }
 
         } catch (e: Exception) {
-                fetchState = FetchState.ERROR_CONNECTION
-           }
+                viewModelScope.launch {
+                    _fetchStateSharedFlow.emit(FetchState.ERROR_CONNECTION)
+                }
 
-        fetchState?.let {
-            viewModelScope.launch {
-                _fetchStateSharedFlow.emit(it)
-            }
-        }
+           }
     }
 }

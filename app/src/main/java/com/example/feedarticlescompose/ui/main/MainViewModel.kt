@@ -101,9 +101,6 @@ class MainViewModel @Inject constructor(
     val goToEditSharedFlow = _goToEditSharedFlow.asSharedFlow()
 
     private var articlesFullList = emptyList<ArticleDto>()
-
-    private var mainState: MainState? = null
-    private var deleteState: DeleteState? = null
     private val headers = HashMap<String, String>()
 
     fun updateSelectedCategory(position: Int) {
@@ -154,7 +151,7 @@ class MainViewModel @Inject constructor(
 
                     when {
                         responseFetchArticles == null ->
-                            mainState = MainState.ERROR_SERVER
+                            _mainStateSharedFlow.emit(MainState.ERROR_SERVER)
 
                         responseFetchArticles.isSuccessful && (body != null) -> {
                             articlesFullList = body
@@ -171,20 +168,15 @@ class MainViewModel @Inject constructor(
                         ERROR_401 -> MainState.ERROR_AUTHORIZATION
                         ERROR_503 -> MainState.ERROR_SERVICE
                         else -> null
-                    }.let {
-                        mainState = it
+                    }?.let {
+                        _mainStateSharedFlow.emit(it)
                     }
 
 
                 } catch (e: Exception) {
-                    mainState = MainState.ERROR_CONNECTION
-                }
-            }
-
-
-            mainState?.let {
-                viewModelScope.launch {
-                    _mainStateSharedFlow.emit(it)
+                    viewModelScope.launch {
+                        _mainStateSharedFlow.emit(MainState.ERROR_CONNECTION)
+                    }
                 }
             }
     }
@@ -203,7 +195,7 @@ class MainViewModel @Inject constructor(
 
                 when  {
                     responseDeleteArticle == null  ->
-                        deleteState = DeleteState.ERROR_SERVER
+                        _deleteStateSharedFlow.emit(DeleteState.ERROR_SERVER)
 
                     responseDeleteArticle.isSuccessful ->
                         fetchAllArticles()
@@ -216,19 +208,15 @@ class MainViewModel @Inject constructor(
                     ERROR_401 -> DeleteState.ERROR_AUTHORIZATION
                     ERROR_503 -> DeleteState.ERROR_SERVICE
                     else -> null
-                }.let {
-                    deleteState = it
+                }?.let {
+                    _deleteStateSharedFlow.emit(it)
                 }
 
             }
 
         } catch (e: Exception) {
-            deleteState = DeleteState.ERROR_CONNECTION
-        }
-
-        deleteState?.let {
             viewModelScope.launch {
-                _deleteStateSharedFlow.emit(it)
+                _deleteStateSharedFlow.emit(DeleteState.ERROR_CONNECTION)
             }
         }
     }

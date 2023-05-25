@@ -39,6 +39,12 @@ class LoginViewModel @Inject constructor(
         ERROR_SERVICE
     }
 
+    enum class LoginErrorState (val httpStatus: Int?) {
+        SECURITY_FAILURE(HTTP_304),
+        ERROR_PARAM(ERROR_400),
+        WRONG_CREDENTIAL(ERROR_401),
+        ERROR_SERVICE(ERROR_503)
+    }
 
 
     private val _loginStateFlow = MutableStateFlow("")
@@ -52,8 +58,6 @@ class LoginViewModel @Inject constructor(
 
     private val _goToMainSharedFlow = MutableSharedFlow<Screen>()
     val goToMainSharedFlow = _goToMainSharedFlow.asSharedFlow()
-
-    private var loginState: LoginState? = null
 
     fun updateLogin(login: String) {
         _loginStateFlow.value = login
@@ -76,43 +80,43 @@ class LoginViewModel @Inject constructor(
                         apiService.login(loginStateFlow.value, passwordStateFlow.value)
                     }
 
-                    val body = responseLogin?.body()
-
+                    val session = responseLogin?.body()
 
                     when {
                         responseLogin == null ->
-                            //loginState = LoginState.ERROR_SERVER
-                            _loginStateSharedFlow.emit(LoginState.ERROR_SERVER)
+                           _loginStateSharedFlow.emit(LoginState.ERROR_SERVER)
 
-                        responseLogin.isSuccessful && (body != null) -> {
-                            sharedPref.saveToken(body.token ?: "")
-                            sharedPref.saveUserId(body.id)
+                        responseLogin.isSuccessful && (session != null) -> {
+                            sharedPref.saveToken(session.token ?: "")
+                            sharedPref.saveUserId(session.id)
                             _goToMainSharedFlow.emit(Screen.Main)
                         }
                     }
 
-                   when(responseLogin?.code()) {
+
+                    when(responseLogin?.code()) {
                         HTTP_304 -> LoginState.SECURITY_FAILURE
-                        ERROR_400 ->LoginState.ERROR_PARAM
+                        ERROR_400 -> LoginState.ERROR_PARAM
                         ERROR_401 -> LoginState.WRONG_CREDENTIAL
                         ERROR_503 -> LoginState.ERROR_SERVICE
                         else -> null
                     }?.let {
-                       _loginStateSharedFlow.emit(it)
+                        _loginStateSharedFlow.emit(it)
                     }
                 }
 
             } catch (e: Exception) {
-                loginState = LoginState.ERROR_CONNECTION
+                viewModelScope.launch {
+                    _loginStateSharedFlow.emit(LoginState.ERROR_CONNECTION)
+                }
             }
         } else {
-            loginState = LoginState.EMPTY_FIELDS
-        }
-
-        loginState?.let {
             viewModelScope.launch {
-                _loginStateSharedFlow.emit(it)
+                _loginStateSharedFlow.emit(LoginState.EMPTY_FIELDS)
             }
         }
+
+
     }
+
 }
