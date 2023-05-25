@@ -1,5 +1,6 @@
 package com.example.feedarticlescompose.ui.creation
 
+import USER_TOKEN
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.NewArticleDto
@@ -36,7 +37,7 @@ class CreationViewModel @Inject constructor(
         SUCCESS
     }
 
-    /*
+   /**
     *  KEEP TRACK OF EACH FIELDS
     */
     private val _titleStateFlow = MutableStateFlow("")
@@ -51,13 +52,13 @@ class CreationViewModel @Inject constructor(
     private val _selectedCategoryStateflow = MutableStateFlow<Int>(2)
     val selectedCategoryStateflow = _selectedCategoryStateflow.asStateFlow()
 
-    /*
-    *  KEEP TRACK OF REQUEST STATE
+   /**
+    *  EMIT CURRENT STATE OF REQUEST
     */
     private val _creationStateSharedFlow = MutableSharedFlow<CreationState>()
     val creattionStateSharedFlow = _creationStateSharedFlow.asSharedFlow()
 
-    /*
+   /**
     *  REDIRECTION TO MAIN AFTER INSERT
     */
     private val _goToMainScreen = MutableSharedFlow<Screen>()
@@ -85,7 +86,7 @@ class CreationViewModel @Inject constructor(
 
     fun newArticle() {
 
-        headers["token"] = sharedPref.getToken() ?: ""
+        headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
         if(
             titleStateFlow.value.isNotBlank()
@@ -117,33 +118,31 @@ class CreationViewModel @Inject constructor(
 
                         when {
                             responseNewArticle == null ->
-                                creationState = CreationState.ERROR_SERVER
+                                 _creationStateSharedFlow.emit(CreationState.ERROR_SERVER)
 
                             responseNewArticle.isSuccessful && (body != null) -> {
-                                creationState = CreationState.SUCCESS
+                                _creationStateSharedFlow.emit(CreationState.SUCCESS)
                                 _goToMainScreen.emit(Screen.Main)
                             }
-
-
                         }
 
                     }
 
                 } catch (e: Exception) {
-                    creationState = CreationState.ERROR_CONNECTION
+                    viewModelScope.launch {
+                        _creationStateSharedFlow.emit(CreationState.ERROR_CONNECTION)
+                    }
                 }
 
             } else {
-                creationState = CreationState.ERROR_TITLE
+                viewModelScope.launch {
+                    _creationStateSharedFlow.emit(CreationState.ERROR_TITLE)
+                }
             }
 
         } else {
-            creationState = CreationState.EMPTY_FIELDS
-        }
-
-        creationState?.let {
             viewModelScope.launch {
-                _creationStateSharedFlow.emit(it)
+                _creationStateSharedFlow.emit(CreationState.EMPTY_FIELDS)
             }
         }
     }

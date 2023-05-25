@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -350,8 +351,6 @@ fun ItemArticle(
                         .clip(CircleShape)
                         .border(1.dp, Color.Black, CircleShape)
                         .background(Color.White)
-
-
                 )
 
                 Text(

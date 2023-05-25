@@ -140,28 +140,28 @@ class MainViewModel @Inject constructor(
 
     fun fetchAllArticles() {
 
-            headers[USER_TOKEN] = sharedPref.getToken() ?: ""
+        headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
+        try {
             viewModelScope.launch {
-                try {
-                    val responseFetchArticles: Response<List<ArticleDto>>? = withContext(Dispatchers.IO) {
-                        apiService.fetchAllArticles(headers)
+
+                val responseFetchArticles: Response<List<ArticleDto>>? = withContext(Dispatchers.IO) {
+                    apiService.fetchAllArticles(headers)
+                }
+                val body = responseFetchArticles?.body()
+
+                when {
+                    responseFetchArticles == null ->
+                        _mainStateSharedFlow.emit(MainState.ERROR_SERVER)
+
+                    responseFetchArticles.isSuccessful && (body != null) -> {
+                        articlesFullList = body
+                        _isLoadingStateFlow.value = false
+                        fetchArticlesListToShow()
+                        delay(500)
+                        _isRefreshingStateFlow.value = false
                     }
-                    val body = responseFetchArticles?.body()
-
-                    when {
-                        responseFetchArticles == null ->
-                            _mainStateSharedFlow.emit(MainState.ERROR_SERVER)
-
-                        responseFetchArticles.isSuccessful && (body != null) -> {
-                            articlesFullList = body
-                            _isLoadingStateFlow.value = false
-                            fetchArticlesListToShow()
-                            delay(500)
-                            _isRefreshingStateFlow.value = false
-                        }
-                    }
-
+                }
 
                     when(responseFetchArticles?.code()) {
                         ERROR_400 -> MainState.ERROR_PARAM
@@ -171,14 +171,13 @@ class MainViewModel @Inject constructor(
                     }?.let {
                         _mainStateSharedFlow.emit(it)
                     }
-
-
-                } catch (e: Exception) {
-                    viewModelScope.launch {
-                        _mainStateSharedFlow.emit(MainState.ERROR_CONNECTION)
-                    }
-                }
             }
+
+        } catch (e: Exception) {
+            viewModelScope.launch {
+                _mainStateSharedFlow.emit(MainState.ERROR_CONNECTION)
+            }
+        }
     }
 
 
@@ -211,7 +210,6 @@ class MainViewModel @Inject constructor(
                 }?.let {
                     _deleteStateSharedFlow.emit(it)
                 }
-
             }
 
         } catch (e: Exception) {
