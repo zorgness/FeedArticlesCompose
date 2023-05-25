@@ -51,6 +51,7 @@ fun LoginScreen(
                 LoginViewModel.LoginState.SECURITY_FAILURE -> R.string.security_failure
                 LoginViewModel.LoginState.ERROR_PARAM -> R.string.error_param
                 LoginViewModel.LoginState.ERROR_SERVICE -> R.string.error_service
+                LoginViewModel.LoginState.SUCCESS -> R.string.login
             }.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             }

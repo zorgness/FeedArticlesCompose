@@ -5,6 +5,7 @@ import ERROR_401
 import ERROR_503
 import HTTP_200
 import HTTP_304
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.SessionDto
@@ -30,6 +31,7 @@ class LoginViewModel @Inject constructor(
 ) : ViewModel() {
 
     enum class LoginState {
+        SUCCESS,
         SECURITY_FAILURE,
         ERROR_PARAM,
         ERROR_CONNECTION,
@@ -39,7 +41,28 @@ class LoginViewModel @Inject constructor(
         ERROR_SERVICE
     }
 
+    enum class LoginFailureState () {
+        ERROR_CONNECTION,
+        ERROR_SERVER,
+        EMPTY_FIELDS,
+    }
 
+    enum class LoginErrorState (val httpStatus: Int?) {
+        SECURITY_FAILURE(HTTP_304),
+        ERROR_PARAM(ERROR_400),
+        WRONG_CREDENTIAL(ERROR_401),
+        ERROR_SERVICE(ERROR_503)
+    }
+
+    enum class LoginSuccessState (val httpStatus: Int?) {
+        SUCCESS(HTTP_200)
+    }
+
+    sealed class LoginResult<out T> {
+        class Success<T>(val data: T, val state: LoginState) :LoginResult<T>()
+        class HttpError(val state: LoginErrorState ) :LoginResult<Nothing>()
+        class Failure(val state: LoginState) :LoginResult<Nothing>()
+    }
 
     private val _loginStateFlow = MutableStateFlow("")
     val loginStateFlow = _loginStateFlow.asStateFlow()
@@ -54,6 +77,8 @@ class LoginViewModel @Inject constructor(
     val goToMainSharedFlow = _goToMainSharedFlow.asSharedFlow()
 
     private var loginState: LoginState? = null
+
+
 
     fun updateLogin(login: String) {
         _loginStateFlow.value = login
@@ -72,16 +97,36 @@ class LoginViewModel @Inject constructor(
             try {
 
                 viewModelScope.launch {
-                    val responseLogin: Response<SessionDto>? = withContext(Dispatchers.IO) {
-                        apiService.login(loginStateFlow.value, passwordStateFlow.value)
+              /*      val responseLogin: LoginResult<SessionDto>? = withContext(Dispatchers.IO) {
+                        LoginResult.Success (
+                            apiService.login(loginStateFlow.value, passwordStateFlow.value)
+                                )
+
                     }
 
-                    val body = responseLogin?.body()
+                    val data = responseLogin*/
+
+                   withContext(Dispatchers.IO) {
+                       val responseLogin =  apiService.login(loginStateFlow.value, passwordStateFlow.value)
+                           if(responseLogin?.isSuccessful == true) {
+                               LoginResult.Success(
+                                   responseLogin.body(),
+                                   LoginState.SUCCESS
+                               ).let {
+                                   sharedPref.saveToken( it.data?.token ?: "")
+                                   sharedPref.saveUserId(it.data?.id ?: 0L )
+
+                                   _goToMainSharedFlow.emit(Screen.Main)
+                                   _loginStateSharedFlow.emit(it.state)
+                           }
+                        }
+                   }
 
 
-                    when {
+                 /*   when {
                         responseLogin == null ->
-                            loginState = LoginState.ERROR_SERVER
+                            _loginStateSharedFlow.emit(LoginState.ERROR_SERVER)
+                            //loginState = LoginState.ERROR_SERVER
 
                         responseLogin.isSuccessful && (body != null) -> {
                             sharedPref.saveToken(body.token ?: "")
@@ -96,22 +141,33 @@ class LoginViewModel @Inject constructor(
                         ERROR_401 -> LoginState.WRONG_CREDENTIAL
                         ERROR_503 -> LoginState.ERROR_SERVICE
                         else -> null
-                    }.let {
-                        loginState = it
-                    }
+                    }?.let {
+                       _loginStateSharedFlow.emit(it)
+                    }*/
                 }
 
             } catch (e: Exception) {
-                loginState = LoginState.ERROR_CONNECTION
+                //loginState = LoginState.ERROR_CONNECTION
             }
         } else {
-            loginState = LoginState.EMPTY_FIELDS
+            //loginState = LoginState.EMPTY_FIELDS
+            //viewModelScope.launch { _loginStateSharedFlow.emit(LoginState.EMPTY_FIELDS) }
+            LoginResult.Failure(
+                LoginState.EMPTY_FIELDS
+            ).let {
+                viewModelScope.launch {
+                    _loginStateSharedFlow.emit(it.state)
+                }
+            }
         }
 
-        loginState?.let {
+
+
+       /* loginState?.let {
             viewModelScope.launch {
                 _loginStateSharedFlow.emit(it)
             }
-        }
+        }*/
     }
 }
+
