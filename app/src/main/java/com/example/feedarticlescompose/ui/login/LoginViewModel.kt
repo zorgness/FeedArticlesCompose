@@ -81,7 +81,8 @@ class LoginViewModel @Inject constructor(
 
                     when {
                         responseLogin == null ->
-                            loginState = LoginState.ERROR_SERVER
+                            //loginState = LoginState.ERROR_SERVER
+                            _loginStateSharedFlow.emit(LoginState.ERROR_SERVER)
 
                         responseLogin.isSuccessful && (body != null) -> {
                             sharedPref.saveToken(body.token ?: "")
@@ -96,8 +97,8 @@ class LoginViewModel @Inject constructor(
                         ERROR_401 -> LoginState.WRONG_CREDENTIAL
                         ERROR_503 -> LoginState.ERROR_SERVICE
                         else -> null
-                    }.let {
-                        loginState = it
+                    }?.let {
+                       _loginStateSharedFlow.emit(it)
                     }
                 }
 
