@@ -133,7 +133,7 @@ fun EditContent(
             placeholder = context.getString(R.string.content),
             value = content,
             handleValue = { handleContent(it) },
-            customHeight = 120
+            maxLines = 5
         )
         CustomTextField(
             placeholder = context.getString(R.string.image_url),

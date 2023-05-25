@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -23,12 +23,26 @@ fun CustomTextField(
     placeholder: String?,
     value: String,
     handleValue: (String) -> Unit,
-    customHeight: Int = 20
+    maxLines: Int = 1
+
     ){
 
-    var isFocus by remember { mutableStateOf(true) }
 
-    BasicTextField(
+    TextField(
+        value = value,
+        onValueChange = { handleValue(it) },
+        placeholder = { Text(text = placeholder ?: "") },
+        minLines = maxLines,
+        maxLines = maxLines,
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Color.White
+        )
+
+    )
+
+   // var isFocus by remember { mutableStateOf(true) }
+
+   /* BasicTextField(
         value = value,
         modifier = Modifier
             .height(customHeight.dp)
@@ -42,9 +56,9 @@ fun CustomTextField(
                     .fillMaxWidth()
                     .drawBehind {
                         drawLine(
-                            color = if(isFocus) Color.Green else Color.Black,
+                            color = if (isFocus) Color.Green else Color.Black,
                             start = Offset(0f, size.height),
-                            end = Offset(size.width,size.height),
+                            end = Offset(size.width, size.height),
                             strokeWidth = 1.dp.toPx()
                         )
                     }
@@ -68,6 +82,6 @@ fun CustomTextField(
             }
         }
 
-    )
+    )*/
 
 }

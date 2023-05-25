@@ -105,7 +105,7 @@ fun MainScreen(
         }
     }
 
-    viewModel.fetchAllArticles()
+    //viewModel.fetchAllArticles()
 
     MainContent(
         selectedCategory = selectedCategory,
@@ -184,10 +184,14 @@ fun MainContent(
                 ) {
                     items(
                         items = articlesList,
+                      /*
+                       *  rememberDismissState will work according to the item id
+                       *  instead of the list position.
+                       */
                         key = {item -> item.id}
                     ) {item->
 
-                        /*
+                       /*
                         *  IF CURRENT USER IS CREATOR
                         */
                         if(item.idU == currentUserId) {
@@ -213,9 +217,7 @@ fun MainContent(
                                     Box(
                                         Modifier
                                             .fillMaxSize()
-                                            .background(Color.Red)
-                                            //.padding(horizontal = Dp(20f)),
-                                                ,
+                                            .background(Color.Red),
                                         contentAlignment = Alignment.CenterEnd
                                     ) {
                                         Icon(
@@ -334,6 +336,7 @@ fun ItemArticle(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
+
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.urlImage)
@@ -442,7 +445,8 @@ fun RadioBtnMainGroup(
         categories.forEachIndexed { index, category ->
             RadioButton(
                 selected = selectedCategory == index,
-                onClick = { onRadioSelected(index) }
+                onClick = { onRadioSelected(index) },
+                colors = RadioButtonDefaults.colors(BlueApp)
             )
             Text(
                 text = category,

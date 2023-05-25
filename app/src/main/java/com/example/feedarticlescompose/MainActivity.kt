@@ -69,6 +69,7 @@ fun AppNavigation() {
         }
         composable(Screen.Main.route) {
             val mainViewModel: MainViewModel = hiltViewModel()
+            mainViewModel.fetchAllArticles()
             MainScreen(navController, mainViewModel)
         }
         composable(Screen.Creation.route) {
