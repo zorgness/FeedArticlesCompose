@@ -1,7 +1,7 @@
 package com.example.feedarticlescompose.ui.edit
 
 import CustomTextField
-import RadioButtonsNewEditGroup
+import com.example.feedarticlescompose.ui.creation.RadioButtonsNewEditGroup
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

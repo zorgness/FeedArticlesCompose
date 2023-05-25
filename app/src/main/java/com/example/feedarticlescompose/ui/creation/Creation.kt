@@ -1,3 +1,6 @@
+package com.example.feedarticlescompose.ui.creation
+
+import CustomTextField
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -19,7 +22,6 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.R
-import com.example.feedarticlescompose.ui.creation.CreationViewModel
 
 
 @Composable
@@ -45,7 +47,7 @@ fun CreationScreen(
 
 
     LaunchedEffect(true ) {
-        viewModel.creattionStateSharedFlow.collect { state ->
+        viewModel.creationStateSharedFlow.collect { state ->
             when(state) {
                 CreationViewModel.CreationState.SUCCESS -> R.string.new_success
                 CreationViewModel.CreationState.ERROR_PARAM -> R.string.error_param
@@ -55,6 +57,7 @@ fun CreationScreen(
                 CreationViewModel.CreationState.EMPTY_FIELDS -> R.string.empty_fields
                 CreationViewModel.CreationState.ERROR_TITLE -> R.string.error_title
                 CreationViewModel.CreationState.FAILURE -> R.string.new_failure
+                CreationViewModel.CreationState.ERROR_SERVICE -> R.string.error_service
             }.let {
                 Toast.makeText(context , it, Toast.LENGTH_SHORT).show()
             }

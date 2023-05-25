@@ -1,6 +1,6 @@
 package com.example.feedarticlescompose
 
-import CreationScreen
+import com.example.feedarticlescompose.ui.creation.CreationScreen
 import com.example.feedarticlescompose.ui.edit.EditScreen
 import LoginScreen
 import com.example.feedarticlescompose.ui.main.MainScreen
