@@ -20,6 +20,7 @@
     <string name="new_account">Nouveau compte</string>
     <string name="log_to_account">Connectez-vous</string>
     <string name="login">Login</string>
+    <string name="login_success">Bienvenue</string>
     <string name="password">Password</string>
     <string name="confirm_password">Confirmation Password</string>
     <string name="btn_register">S\'inscrire</string>
