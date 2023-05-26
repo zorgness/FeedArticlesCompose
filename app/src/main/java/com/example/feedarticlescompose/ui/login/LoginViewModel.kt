@@ -28,7 +28,6 @@ class LoginViewModel @Inject constructor(
 
 ) : ViewModel() {
 
-
     enum class LoginState(val httpStatus: Int?) {
         SUCCESS(HTTP_200),
         SECURITY_FAILURE(HTTP_304),
@@ -89,7 +88,7 @@ class LoginViewModel @Inject constructor(
                 viewModelScope.launch {
 
                     withContext(Dispatchers.IO) {
-                        val responseLogin =  apiService.login(loginStateFlow.value, passwordStateFlow.value)
+                        val responseLogin = apiService.login(loginStateFlow.value, passwordStateFlow.value)
 
                         if(responseLogin == null) {
                             Result.Error(
