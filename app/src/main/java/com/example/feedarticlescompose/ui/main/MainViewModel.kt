@@ -6,7 +6,6 @@ import ERROR_503
 import HTTP_201
 import HTTP_304
 import USER_TOKEN
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.ArticleDto
@@ -22,8 +21,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Response
-import java.net.SocketException
 import javax.inject.Inject
 import com.example.feedarticlescompose.utils.Result
 
@@ -41,7 +38,7 @@ class MainViewModel @Inject constructor(
         ERROR_PARAM(ERROR_400);
 
         companion object {
-            fun getState(httpStatus: Int): MainState? {
+            fun getCurrentState(httpStatus: Int): MainState? {
                 MainState.values().forEach { state ->
                     if (state.httpStatus == httpStatus) {
                         return state
@@ -62,7 +59,7 @@ class MainViewModel @Inject constructor(
         ERROR_PARAM(ERROR_400);
 
         companion object {
-            fun getState(httpStatus: Int): DeleteState? {
+            fun getCurrentState(httpStatus: Int): DeleteState? {
                 values().forEach { state ->
                     if (state.httpStatus == httpStatus) {
                         return state
@@ -127,9 +124,9 @@ class MainViewModel @Inject constructor(
     private val _goToEditSharedFlow = MutableSharedFlow<String>()
     val goToEditSharedFlow = _goToEditSharedFlow.asSharedFlow()
 
+
     private var articlesFullList = emptyList<ArticleDto>()
     private val headers = HashMap<String, String>()
-
     private var isLoggedIn = true
 
     fun updateSelectedCategory(position: Int) {
@@ -150,7 +147,7 @@ class MainViewModel @Inject constructor(
         _expandedIdStateFlow.value = 0L
     }
 
-    fun setRefresh() {
+    fun refresh() {
         _isRefreshingStateFlow.value = !_isRefreshingStateFlow.value
         fetchAllArticles()
     }
@@ -177,26 +174,32 @@ class MainViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val responseFetchArticles = apiService.fetchAllArticles(headers)
 
-                    if(responseFetchArticles?.isSuccessful == true) {
+                    if(responseFetchArticles == null) {
+                        Result.Error(MainState.ERROR_SERVER)
+                            .let {
+                                _mainStateSharedFlow.emit(it.state)
+                            }
+                    } else if(responseFetchArticles.isSuccessful) {
                         Result.Success(
                            responseFetchArticles.body(),
                            responseFetchArticles.code()
                         ).let { result ->
                                articlesFullList = result.data ?: emptyList()
+                                fetchArticlesListToShow()
                                _isLoadingStateFlow.value = false
-                               fetchArticlesListToShow()
                                delay(500)
                                _isRefreshingStateFlow.value = false
 
-                            MainState.getState(result.httpStatus)?.let { state ->
+                            MainState.getCurrentState(result.httpStatus)?.let { state ->
                                 _mainStateSharedFlow.emit(state)
                             }
                         }
                     } else {
-                        Result.HttpStatus(responseFetchArticles?.code() ?: 0)
+                        Result.HttpStatus(responseFetchArticles.code())
                            .let { result->
-                                MainState.getState(result.httpStatus)?.let { state ->
-                                    _mainStateSharedFlow.emit(state)
+                                MainState.getCurrentState(result.httpStatus)?.let { state ->
+                                    if(isLoggedIn)
+                                        _mainStateSharedFlow.emit(state)
                                 }
                            }
                     }
@@ -211,9 +214,6 @@ class MainViewModel @Inject constructor(
                     _mainStateSharedFlow.emit(result.state)
                 }
             }
-
-        } catch (se: SocketException) {
-            Log.d("network", "Network is unreachable")
         }
     }
 
@@ -228,22 +228,26 @@ class MainViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     val responseDeleteArticle = apiService.deleteArticle(articleId, headers)
 
-                    if(responseDeleteArticle?.isSuccessful == true) {
+                    if(responseDeleteArticle == null) {
+                       Result.Error(DeleteState.ERROR_SERVER).let {
+                           _deleteStateSharedFlow.emit(it.state)
+                       }
+                    } else if(responseDeleteArticle.isSuccessful) {
                         Result.Success(
                             null,
                             responseDeleteArticle.code()
-                        ).let {result ->
-                                fetchAllArticles()
-                                DeleteState.getState(result.httpStatus)?.let { state ->
-                                    _deleteStateSharedFlow.emit(state)
-                                }
+                        ).let { result ->
+                            fetchAllArticles()
+                            DeleteState.getCurrentState(result.httpStatus)?.let { state ->
+                                _deleteStateSharedFlow.emit(state)
+                            }
                         }
                     } else {
-                        Result.HttpStatus(responseDeleteArticle?.code() ?: 0)
+                        Result.HttpStatus(responseDeleteArticle.code())
                             .let { result ->
-                                    DeleteState.getState(result.httpStatus)?.let { state ->
-                                        _deleteStateSharedFlow.emit(state)
-                                    }
+                                DeleteState.getCurrentState(result.httpStatus)?.let { state ->
+                                    _deleteStateSharedFlow.emit(state)
+                                }
                             }
                     }
                 }
@@ -252,7 +256,7 @@ class MainViewModel @Inject constructor(
         } catch (e: Exception) {
             Result.ExeptionError(
                 DeleteState.ERROR_CONNECTION
-            ).let {result->
+            ).let { result->
                 viewModelScope.launch {
                     _deleteStateSharedFlow.emit(result.state)
                 }

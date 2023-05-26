@@ -7,10 +7,8 @@ import HTTP_201
 import HTTP_303
 import HTTP_304
 import USER_TOKEN
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.dataclass.UpdateArticleDto
 import com.example.feedarticlescompose.extensions.is80charactersMax
 import com.example.feedarticlescompose.network.ApiService
@@ -24,7 +22,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Response
 import javax.inject.Inject
 import com.example.feedarticlescompose.utils.Result
 
@@ -46,7 +43,7 @@ class EditViewModel @Inject constructor(
         FAILURE(HTTP_304),
         SUCCESS(HTTP_201);
         companion object {
-            fun getState(httpStatus: Int): EditState? {
+            fun getCurrentState(httpStatus: Int): EditState? {
                 EditState.values().forEach { state->
                     if(state.httpStatus == httpStatus) {
                         return state
@@ -67,7 +64,7 @@ class EditViewModel @Inject constructor(
         ERROR_SERVICE(ERROR_503);
 
         companion object {
-            fun getState(httpStatus: Int): FetchState? {
+            fun getCurrentState(httpStatus: Int): FetchState? {
                 values().forEach {state->
                     if(state.httpStatus == httpStatus) {
                         return state
@@ -163,21 +160,29 @@ class EditViewModel @Inject constructor(
                                 )
                             )
 
-                            if(responseEdit?.isSuccessful == true) {
+                            if(responseEdit == null) {
+                                Result.Error(
+                                    EditState.ERROR_SERVER
+                                ).let {
+                                    viewModelScope.launch {
+                                        _editStateSharedFlow.emit(it.state)
+                                    }
+                                }
+                            } else if(responseEdit.isSuccessful) {
                                Result.Success(
                                    null,
                                    responseEdit.code()
                                ).let { result ->
-                                   EditState.getState(result.httpStatus)?.let { state ->
+                                   EditState.getCurrentState(result.httpStatus)?.let { state ->
                                        _editStateSharedFlow.emit(state)
                                        _goToMainScreen.emit(Screen.Main)
                                    }
                                }
                             } else {
                                 Result.HttpStatus(
-                                   responseEdit?.code() ?: 0
+                                   responseEdit.code()
                                 ).let { result ->
-                                    EditState.getState(result.httpStatus)?.let { state ->
+                                    EditState.getCurrentState(result.httpStatus)?.let { state ->
                                        _editStateSharedFlow.emit(state)
                                     }
                                 }
@@ -196,7 +201,7 @@ class EditViewModel @Inject constructor(
                 }
 
             } else
-                Result.Failure(
+                Result.Error(
                     EditState.ERROR_TITLE
                 ).let {
                     viewModelScope.launch {
@@ -204,7 +209,7 @@ class EditViewModel @Inject constructor(
                     }
                 }
         } else
-            Result.Failure(
+            Result.Error(
                 EditState.EMPTY_FIELDS
             ).let {
                 viewModelScope.launch {
@@ -236,7 +241,7 @@ class EditViewModel @Inject constructor(
                                     updateSelectedCategory(categorie.minus(1))
                                 }
                             }
-                            FetchState.getState(result.httpStatus)?.let { state ->
+                            FetchState.getCurrentState(result.httpStatus)?.let { state ->
                                 _fetchStateSharedFlow.emit(state)
                             }
                         }
@@ -244,7 +249,7 @@ class EditViewModel @Inject constructor(
                         Result.HttpStatus(
                             responseFetchArticle?.code() ?: 0
                         ).let {result ->
-                            FetchState.getState(result.httpStatus)?.let { state->
+                            FetchState.getCurrentState(result.httpStatus)?.let { state->
                                 _fetchStateSharedFlow.emit(state)
                             }
                         }

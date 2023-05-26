@@ -40,7 +40,7 @@ class LoginViewModel @Inject constructor(
         ERROR_SERVICE(ERROR_503);
 
         companion object {
-            fun getState(httpStatus: Int): LoginState? {
+            fun getCurrentState(httpStatus: Int): LoginState? {
                 values().forEach { state ->
                     if (state.httpStatus == httpStatus) {
                         return state
@@ -70,7 +70,6 @@ class LoginViewModel @Inject constructor(
     private val _goToMainSharedFlow = MutableSharedFlow<Screen>()
     val goToMainSharedFlow = _goToMainSharedFlow.asSharedFlow()
 
-
     fun updateLogin(login: String) {
         _loginStateFlow.value = login
     }
@@ -91,7 +90,16 @@ class LoginViewModel @Inject constructor(
 
                     withContext(Dispatchers.IO) {
                         val responseLogin =  apiService.login(loginStateFlow.value, passwordStateFlow.value)
-                        if(responseLogin?.isSuccessful == true) {
+
+                        if(responseLogin == null) {
+                            Result.Error(
+                                LoginState.ERROR_SERVER
+                            ).let {
+                                viewModelScope.launch {
+                                    _loginStateSharedFlow.emit(it.state)
+                                }
+                            }
+                        } else if(responseLogin.isSuccessful) {
                             Result.Success(
                                 responseLogin.body(),
                                 responseLogin.code()
@@ -99,13 +107,13 @@ class LoginViewModel @Inject constructor(
                                 sharedPref.saveToken( it.data?.token ?: "")
                                 sharedPref.saveUserId(it.data?.id ?: 0L )
                                 _goToMainSharedFlow.emit(Screen.Main)
-                                LoginState.getState(it.httpStatus)?.also {state->
+                                LoginState.getCurrentState(it.httpStatus)?.also { state->
                                     _loginStateSharedFlow.emit(state)
                                 }
                             }
                         } else {
-                            Result.HttpStatus(responseLogin?.code() ?: 0).let {
-                                LoginState.getState(it.httpStatus)?.also {state->
+                            Result.HttpStatus(responseLogin.code()).let {
+                                LoginState.getCurrentState(it.httpStatus)?.also { state->
                                     _loginStateSharedFlow.emit(state)
                                 }
                             }
@@ -123,7 +131,7 @@ class LoginViewModel @Inject constructor(
                 }
             }
         } else {
-            Result.Failure(
+            Result.Error(
                 LoginState.EMPTY_FIELDS
             ).let {
                 viewModelScope.launch {

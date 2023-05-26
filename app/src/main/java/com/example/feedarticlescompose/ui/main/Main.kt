@@ -26,10 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -114,7 +112,7 @@ fun MainScreen(
         isExpandedId = isExpandedId,
         isRefreshing = isRefreshing,
         handleItemClicked = { viewModel.handleItemClicked(it) },
-        handleExpandOff = { viewModel.resetExpandedId() },
+        handleExpandReset = { viewModel.resetExpandedId() },
         goToNewArticle = {
             navController.navigate(Screen.Creation.route)
         },
@@ -122,7 +120,7 @@ fun MainScreen(
         handleCategory = { position ->
             viewModel.updateSelectedCategory(position)
         },
-        handleRefresh = { viewModel.setRefresh() },
+        handleRefresh = { viewModel.refresh() },
         handleDelete = { viewModel.deleteArticle(it) }
     )
 }
@@ -138,7 +136,7 @@ fun MainContent(
     isRefreshing: Boolean,
     isExpandedId: Long,
     handleItemClicked: (ArticleDto) -> Unit,
-    handleExpandOff: () -> Unit,
+    handleExpandReset: () -> Unit,
     goToNewArticle: () -> Unit,
     handleLogout: () -> Unit,
     handleCategory: (Int) -> Unit,
@@ -208,6 +206,7 @@ fun MainContent(
                                 ),
                                 dismissThresholds = { direction ->
                                     FractionalThreshold(
+                                        // action is triggered when item is swiped at 90%
                                         if (direction == DismissDirection.EndToStart) 0.1f else 0.05f
                                     )
                                 },
@@ -230,7 +229,7 @@ fun MainContent(
                                         item = item,
                                         isExpandedId,
                                         onItemClicked = handleItemClicked,
-                                        onExpandOffClicked = handleExpandOff
+                                        onExpandResetClicked = handleExpandReset
                                     )
                                 }
                             )
@@ -243,7 +242,7 @@ fun MainContent(
                                 item = item,
                                 isExpandedId,
                                 onItemClicked = handleItemClicked,
-                                onExpandOffClicked = handleExpandOff
+                                onExpandResetClicked = handleExpandReset
                             )
                         }
                     }
@@ -306,7 +305,7 @@ fun ItemArticle(
     item: ArticleDto,
     isExpandedId: Long,
     onItemClicked: (ArticleDto) -> Unit,
-    onExpandOffClicked: () -> Unit
+    onExpandResetClicked: () -> Unit
 ) {
 
 
@@ -368,7 +367,7 @@ fun ItemArticle(
                     Icons.Default.ExpandLess,
                     contentDescription = null,
                     modifier = Modifier.clickable {
-                        onExpandOffClicked()
+                        onExpandResetClicked()
                     }
                 )
             }
@@ -378,7 +377,7 @@ fun ItemArticle(
             AnimatedVisibility(
                 visible = item.id == isExpandedId,
                 enter = expandVertically(),
-                exit =  slideOutVertically()
+                exit =  slideOutVertically() + shrinkVertically() + fadeOut()
             ) {
                 Box(
                     modifier = Modifier

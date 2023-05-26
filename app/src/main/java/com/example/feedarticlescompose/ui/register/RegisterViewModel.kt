@@ -8,9 +8,7 @@ import HTTP_304
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.RegisterDto
-import com.example.feedarticlescompose.dataclass.SessionDto
 import com.example.feedarticlescompose.network.ApiService
-import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +19,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Response
 import javax.inject.Inject
 import com.example.feedarticlescompose.utils.Result
 
@@ -97,28 +94,32 @@ class RegisterViewModel @Inject constructor(
                                 RegisterDto(loginStateFlow.value, passwordStateFlow.value)
                             )
 
-                            if(responseRegister?.isSuccessful == true ) {
+                            if(responseRegister == null) {
+                                Result.Error(RegisterState.ERROR_SERVER).let {result->
+                                    _registerStateSharedFlow.emit(result.state)
+                                }
+                            } else if(responseRegister.isSuccessful) {
 
                                 Result.Success(
                                     responseRegister.body(),
                                     responseRegister.code()
-                                ).let {result->
-                                    sharedPref.saveToken(result.data?.token ?: "")
-                                    sharedPref.saveUserId(result.data?.id ?: 0)
-                                    _goToMainSharedFlow.emit(Screen.Main)
+                                ).let { result->
+                                        sharedPref.saveToken(result.data?.token ?: "")
+                                        sharedPref.saveUserId(result.data?.id ?: 0)
+                                        _goToMainSharedFlow.emit(Screen.Main)
 
-                                    RegisterState.getState(result.httpStatus)
-                                        ?.let { state->
-                                            _registerStateSharedFlow.emit(state)
-                                        }
+                                        RegisterState.getState(result.httpStatus)
+                                            ?.let { state->
+                                                _registerStateSharedFlow.emit(state)
+                                            }
                                 }
 
                             } else {
-                                Result.HttpStatus(responseRegister?.code() ?: 0)
-                                    .let { result->
-                                        RegisterState.getState(result.httpStatus)?.let { state->
-                                            _registerStateSharedFlow.emit(state)
-                                        }
+                                Result.HttpStatus(responseRegister.code())
+                                    .let { result ->
+                                            RegisterState.getState(result.httpStatus)?.let { state->
+                                                _registerStateSharedFlow.emit(state)
+                                            }
                                     }
                             }
                         }
@@ -135,7 +136,7 @@ class RegisterViewModel @Inject constructor(
 
                 }
             } else
-                Result.Failure(
+                Result.Error(
                     RegisterState.ERROR_CONFIRMATION
                 ).let {
                     viewModelScope.launch {
@@ -144,7 +145,7 @@ class RegisterViewModel @Inject constructor(
                 }
 
         } else
-            Result.Failure(
+            Result.Error(
                 RegisterState.EMPTY_FIELDS
             ).let {
                 viewModelScope.launch {

@@ -11,7 +11,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.feedarticlescompose.dataclass.NewArticleDto
 import com.example.feedarticlescompose.extensions.is80charactersMax
 import com.example.feedarticlescompose.network.ApiService
-import com.example.feedarticlescompose.ui.register.RegisterViewModel
 import com.example.feedarticlescompose.utils.MySharedPref
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +21,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Response
 import javax.inject.Inject
 import com.example.feedarticlescompose.utils.Result
 
@@ -45,7 +43,7 @@ class CreationViewModel @Inject constructor(
         ERROR_SERVICE(ERROR_503);
 
         companion object {
-            fun getState(httpStatus: Int): CreationState? {
+            fun getCurrentState(httpStatus: Int): CreationState? {
                 CreationState.values().forEach { state ->
                     if (state.httpStatus == httpStatus) {
                         return state
@@ -132,12 +130,21 @@ class CreationViewModel @Inject constructor(
                                 headers = headers
                             )
 
-                            if(responseNewArticle?.isSuccessful == true) {
+                            if(responseNewArticle == null) {
+                                Result.Error(
+                                    CreationState.ERROR_SERVER
+                                ).let {
+                                    viewModelScope.launch {
+                                        _creationStateSharedFlow.emit(it.state)
+                                    }
+                                }
+
+                            } else if(responseNewArticle.isSuccessful) {
                                 Result.Success(
                                     null,
                                     responseNewArticle.code()
                                 ).let { result ->
-                                    CreationState.getState(result.httpStatus)
+                                    CreationState.getCurrentState(result.httpStatus)
                                         ?.let { state ->
                                             _creationStateSharedFlow.emit(state)
                                             _goToMainScreen.emit(Screen.Main)
@@ -145,9 +152,9 @@ class CreationViewModel @Inject constructor(
                                 }
                             } else {
                                 Result.HttpStatus(
-                                    responseNewArticle?.code() ?: 0
+                                    responseNewArticle.code()
                                 ).let { result ->
-                                    CreationState.getState(result.httpStatus)
+                                    CreationState.getCurrentState(result.httpStatus)
                                         ?.let { state ->
                                                 _creationStateSharedFlow.emit(state)
                                         }
@@ -168,7 +175,7 @@ class CreationViewModel @Inject constructor(
                 }
 
             } else {
-                Result.Failure(
+                Result.Error(
                     CreationState.ERROR_TITLE
                 ).let {
                     viewModelScope.launch {
@@ -178,7 +185,7 @@ class CreationViewModel @Inject constructor(
             }
 
         } else {
-            Result.Failure(
+            Result.Error(
                 CreationState.EMPTY_FIELDS
             ).let {
                 viewModelScope.launch {
