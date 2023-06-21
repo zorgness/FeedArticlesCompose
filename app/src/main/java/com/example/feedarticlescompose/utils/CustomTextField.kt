@@ -27,13 +27,13 @@ fun CustomTextField(
 
     ){
 
-
     TextField(
         value = value,
         onValueChange = { handleValue(it) },
-        placeholder = { Text(text = placeholder ?: "") },
+        placeholder = { Text(text = placeholder ?: "", color = Color.DarkGray) },
         minLines = maxLines,
         maxLines = maxLines,
+        textStyle = TextStyle(color = Color.Black),
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = Color.White
         )

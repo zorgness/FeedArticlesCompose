@@ -90,7 +90,7 @@ fun EditScreen(
         handleTitle = { viewModel.updateTitle(it) },
         handleContent = { viewModel.updateContent(it) },
         handleImageUrl = { viewModel.updateImageUrl(it) },
-        handleCategoryPosition = { viewModel.updateSelectedCategory(it)},
+        handleCategoryPosition = { viewModel.updateSelectedCategory(it) },
         handleClick = { viewModel.editArticle() }
     )
 }

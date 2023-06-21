@@ -7,8 +7,10 @@ import HTTP_200
 import HTTP_304
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.feedarticlescompose.network.ApiService
 import com.example.feedarticlescompose.utils.MySharedPref
+import com.example.feedarticlescompose.utils.NetworkResult
 import com.example.feedarticlescompose.utils.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -38,16 +40,15 @@ class LoginViewModel @Inject constructor(
         EMPTY_FIELDS(null),
         ERROR_SERVICE(ERROR_503);
 
-        companion object {
-            fun getCurrentState(httpStatus: Int): LoginState? {
-                values().forEach { state ->
-                    if (state.httpStatus == httpStatus) {
-                        return state
-                    }
-                }
-                return null
+    }
+
+    private fun getCurrentState(httpStatus: Int): LoginState? {
+        LoginState.values().forEach { state ->
+            if (state.httpStatus == httpStatus) {
+                return state
             }
         }
+        return null
     }
 
 
@@ -69,6 +70,7 @@ class LoginViewModel @Inject constructor(
     private val _goToMainSharedFlow = MutableSharedFlow<Screen>()
     val goToMainSharedFlow = _goToMainSharedFlow.asSharedFlow()
 
+    private var currentState: LoginState? = null
     fun updateLogin(login: String) {
         _loginStateFlow.value = login
     }
@@ -77,67 +79,58 @@ class LoginViewModel @Inject constructor(
         _passwordStateFlow.value = password
     }
 
+
+
     fun login() {
-        if (
-            loginStateFlow.value.isNotBlank()
-            &&
-            passwordStateFlow.value.isNotBlank()
-        ) {
-            try {
 
-                viewModelScope.launch {
-
+        viewModelScope.launch {
+            if (
+                loginStateFlow.value.isNotBlank()
+                &&
+                passwordStateFlow.value.isNotBlank()
+            ) {
+                try {
                     withContext(Dispatchers.IO) {
-                        val responseLogin = apiService.login(loginStateFlow.value, passwordStateFlow.value)
+                        val responseLogin =
+                            apiService.login(
+                                loginStateFlow.value,
+                                passwordStateFlow.value
+                            )
+                        val body = responseLogin?.body()
 
-                        if(responseLogin == null) {
-                            Result.Error(
-                                LoginState.ERROR_SERVER
-                            ).let {
-                                viewModelScope.launch {
-                                    _loginStateSharedFlow.emit(it.state)
-                                }
+                        when {
+                            responseLogin == null ->
+                                currentState = LoginState.ERROR_SERVER
+
+                            responseLogin.isSuccessful && (body != null) -> {
+
+                                    currentState = LoginState.SUCCESS
+                                    sharedPref.saveToken(body.token ?: "")
+                                    sharedPref.saveUserId( body.id)
+                                    _goToMainSharedFlow.emit(Screen.Main)
                             }
-                        } else if(responseLogin.isSuccessful) {
-                            Result.Success(
-                                responseLogin.body(),
-                                responseLogin.code()
-                            ).let {
-                                sharedPref.saveToken( it.data?.token ?: "")
-                                sharedPref.saveUserId(it.data?.id ?: 0L )
-                                _goToMainSharedFlow.emit(Screen.Main)
-                                LoginState.getCurrentState(it.httpStatus)?.also { state->
-                                    _loginStateSharedFlow.emit(state)
-                                }
-                            }
-                        } else {
-                            Result.HttpStatus(responseLogin.code()).let {
-                                LoginState.getCurrentState(it.httpStatus)?.also { state->
-                                    _loginStateSharedFlow.emit(state)
+
+                            else -> {
+                                getCurrentState(responseLogin.code())?.let { state ->
+                                        currentState = state
                                 }
                             }
                         }
                     }
+
+                } catch (e: Exception) {
+                    currentState = LoginState.ERROR_CONNECTION
                 }
 
-            } catch (e: Exception) {
-                Result.ExeptionError(
-                    LoginState.ERROR_CONNECTION
-                ).let {
-                    viewModelScope.launch {
-                        _loginStateSharedFlow.emit(it.state)
-                    }
-                }
+            } else {
+                currentState = LoginState.EMPTY_FIELDS
             }
-        } else {
-            Result.Error(
-                LoginState.EMPTY_FIELDS
-            ).let {
-                viewModelScope.launch {
-                    _loginStateSharedFlow.emit(it.state)
-                }
+            currentState?.let {state->
+                    _loginStateSharedFlow.emit(state)
             }
         }
+
+
     }
 }
 

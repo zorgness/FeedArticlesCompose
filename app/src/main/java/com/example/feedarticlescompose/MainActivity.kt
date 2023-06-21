@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.feedarticlescompose.ui.creation.CreationViewModel
+import com.example.feedarticlescompose.ui.darkmode.DarkViewModel
 import com.example.feedarticlescompose.ui.edit.EditViewModel
 import com.example.feedarticlescompose.ui.login.LoginViewModel
 import com.example.feedarticlescompose.ui.main.MainViewModel
@@ -34,16 +35,28 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private var darkViewModel: DarkViewModel? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            FeedArticlesComposeTheme {
+            darkViewModel= hiltViewModel()
+
+            val isDarkMode by darkViewModel!!.isDarkMode.collectAsState()
+
+            FeedArticlesComposeTheme(
+                darkTheme = isDarkMode
+            ) {
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
+                    color = MaterialTheme.colors.background,
+
                 ) {
-                    AppNavigation()
+                    AppNavigation(
+                        darkViewModel = darkViewModel!!
+                    )
                 }
             }
         }
@@ -52,7 +65,9 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalUnitApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    darkViewModel: DarkViewModel
+) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.Splash.route ) {
         composable(Screen.Splash.route) {
@@ -70,7 +85,7 @@ fun AppNavigation() {
         composable(Screen.Main.route) {
             val mainViewModel: MainViewModel = hiltViewModel()
             mainViewModel.fetchAllArticles()
-            MainScreen(navController, mainViewModel)
+            MainScreen(navController, mainViewModel, darkViewModel)
         }
         composable(Screen.Creation.route) {
             val creationViewModel: CreationViewModel = hiltViewModel()

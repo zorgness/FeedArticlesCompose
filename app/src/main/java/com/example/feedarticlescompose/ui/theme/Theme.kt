@@ -5,11 +5,12 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorPalette = darkColors(
-    primary = BlueApp,
-    primaryVariant = Purple700,
-    secondary = Teal200
+    primary = Color.DarkGray,
+    primaryVariant = Color.Black,
+    secondary = Color.DarkGray
 )
 
 private val LightColorPalette = lightColors(
@@ -40,7 +41,7 @@ fun FeedArticlesComposeTheme(
 
     MaterialTheme(
         colors = colors,
-        typography = Typography,
+        typography = if(darkTheme) TypographyDark else Typography,
         shapes = Shapes,
         content = content
     )

@@ -7,3 +7,6 @@ sealed class Result<out T> {
     class Error<T>(val state: T) :Result<Nothing>()
     data class ExeptionError<T>(val state: T) : Result<Nothing>()
 }
+
+
+// when

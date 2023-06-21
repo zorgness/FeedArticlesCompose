@@ -22,6 +22,19 @@ android {
         }
     }
 
+    flavorDimensions "paidMode"
+    productFlavors {
+        free {
+            dimension "paidMode"
+            applicationIdSuffix ".free"
+        }
+        paid {
+            dimension "paidMode"
+            applicationIdSuffix ".paid"
+
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -62,6 +75,9 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
+
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0'
+
 
     /***** SWIPE REFRESH *****/
     implementation 'com.google.accompanist:accompanist-swiperefresh:0.24.13-rc'

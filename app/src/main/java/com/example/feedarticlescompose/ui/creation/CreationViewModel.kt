@@ -105,68 +105,79 @@ class CreationViewModel @Inject constructor(
 
         headers[USER_TOKEN] = sharedPref.getToken() ?: ""
 
-        if(
-            titleStateFlow.value.isNotBlank()
-            &&
-            contentStateFlow.value.isNotBlank()
-            &&
-            imageUrlStateFlow.value.isNotBlank()
-        ) {
-            if(titleStateFlow.value.is80charactersMax) {
+        viewModelScope.launch {
+            if(
+                titleStateFlow.value.isNotBlank()
+                &&
+                contentStateFlow.value.isNotBlank()
+                &&
+                imageUrlStateFlow.value.isNotBlank()
+            ) {
+                if(titleStateFlow.value.is80charactersMax) {
 
-                try {
+                    try {
 
-                    viewModelScope.launch {
 
-                        withContext(Dispatchers.IO) {
-                            val responseNewArticle = apiService.addNewArticle(
-                                NewArticleDto(
-                                    title = titleStateFlow.value,
-                                    desc = contentStateFlow.value,
-                                    image = imageUrlStateFlow.value,
-                                    idU = sharedPref.getUserId(),
-                                    cat = selectedCategoryStateflow.value.plus(1)
-                                ),
-                                headers = headers
-                            )
 
-                            if(responseNewArticle == null) {
-                                Result.Error(
-                                    CreationState.ERROR_SERVER
-                                ).let {
-                                    viewModelScope.launch {
-                                        _creationStateSharedFlow.emit(it.state)
+                            withContext(Dispatchers.IO) {
+                                val responseNewArticle = apiService.addNewArticle(
+                                    NewArticleDto(
+                                        title = titleStateFlow.value,
+                                        desc = contentStateFlow.value,
+                                        image = imageUrlStateFlow.value,
+                                        idU = sharedPref.getUserId(),
+                                        cat = selectedCategoryStateflow.value.plus(1)
+                                    ),
+                                    headers = headers
+                                )
+
+                                if(responseNewArticle == null) {
+                                    Result.Error(
+                                        CreationState.ERROR_SERVER
+                                    ).let {
+                                        viewModelScope.launch {
+                                            _creationStateSharedFlow.emit(it.state)
+                                        }
+                                    }
+
+                                } else if(responseNewArticle.isSuccessful) {
+                                    Result.Success(
+                                        null,
+                                        responseNewArticle.code()
+                                    ).let { result ->
+                                        CreationState.getCurrentState(result.httpStatus)
+                                            ?.let { state ->
+                                                _creationStateSharedFlow.emit(state)
+                                                _goToMainScreen.emit(Screen.Main)
+                                            }
+                                    }
+                                } else {
+                                    Result.HttpStatus(
+                                        responseNewArticle.code()
+                                    ).let { result ->
+                                        CreationState.getCurrentState(result.httpStatus)
+                                            ?.let { state ->
+                                                    _creationStateSharedFlow.emit(state)
+                                            }
                                     }
                                 }
+                            }
 
-                            } else if(responseNewArticle.isSuccessful) {
-                                Result.Success(
-                                    null,
-                                    responseNewArticle.code()
-                                ).let { result ->
-                                    CreationState.getCurrentState(result.httpStatus)
-                                        ?.let { state ->
-                                            _creationStateSharedFlow.emit(state)
-                                            _goToMainScreen.emit(Screen.Main)
-                                        }
-                                }
-                            } else {
-                                Result.HttpStatus(
-                                    responseNewArticle.code()
-                                ).let { result ->
-                                    CreationState.getCurrentState(result.httpStatus)
-                                        ?.let { state ->
-                                                _creationStateSharedFlow.emit(state)
-                                        }
-                                }
+
+
+                    } catch (e: Exception) {
+                        Result.ExeptionError(
+                            CreationState.ERROR_CONNECTION
+                        ).let {
+                            viewModelScope.launch {
+                                _creationStateSharedFlow.emit(it.state)
                             }
                         }
-
                     }
 
-                } catch (e: Exception) {
-                    Result.ExeptionError(
-                        CreationState.ERROR_CONNECTION
+                } else {
+                    Result.Error(
+                        CreationState.ERROR_TITLE
                     ).let {
                         viewModelScope.launch {
                             _creationStateSharedFlow.emit(it.state)
@@ -176,22 +187,14 @@ class CreationViewModel @Inject constructor(
 
             } else {
                 Result.Error(
-                    CreationState.ERROR_TITLE
+                    CreationState.EMPTY_FIELDS
                 ).let {
                     viewModelScope.launch {
                         _creationStateSharedFlow.emit(it.state)
                     }
                 }
             }
-
-        } else {
-            Result.Error(
-                CreationState.EMPTY_FIELDS
-            ).let {
-                viewModelScope.launch {
-                    _creationStateSharedFlow.emit(it.state)
-                }
-            }
         }
     }
+
 }

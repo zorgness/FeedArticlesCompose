@@ -33,6 +33,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.feedarticlescompose.dataclass.ArticleDto
 import com.example.feedarticlescompose.R
+import com.example.feedarticlescompose.ui.darkmode.DarkViewModel
 import com.example.feedarticlescompose.ui.main.MainViewModel.DeleteState.*
 import com.example.feedarticlescompose.ui.theme.BlueApp
 import com.example.feedarticlescompose.utils.Category
@@ -48,6 +49,7 @@ import dateForrmater
 fun MainScreen(
     navController: NavHostController,
     viewModel: MainViewModel,
+    darkViewModel: DarkViewModel,
 ) {
     val articlesList by viewModel.articlesToShowStateFlow.collectAsState()
     val isLoading by viewModel.isLoadingStateFlow.collectAsState()
@@ -55,6 +57,7 @@ fun MainScreen(
     val isExpandedId by viewModel.expandedIdStateFlow.collectAsState()
     val isRefreshing by viewModel.isRefreshingStateFlow.collectAsState()
     val currentUserId by viewModel.currentUserIdStateflow.collectAsState()
+    val isDarkMode by darkViewModel.isDarkMode.collectAsState()
     val context = LocalContext.current
 
 
@@ -111,11 +114,13 @@ fun MainScreen(
         isLoading = isLoading,
         isExpandedId = isExpandedId,
         isRefreshing = isRefreshing,
+        isDarkMode = isDarkMode,
         handleItemClicked = { viewModel.handleItemClicked(it) },
         handleExpandReset = { viewModel.resetExpandedId() },
         goToNewArticle = {
             navController.navigate(Screen.Creation.route)
         },
+        handleDarkMode = { darkViewModel.setDarkMode() },
         handleLogout = { viewModel.logout() },
         handleCategory = { position ->
             viewModel.updateSelectedCategory(position)
@@ -135,9 +140,11 @@ fun MainContent(
     isLoading: Boolean,
     isRefreshing: Boolean,
     isExpandedId: Long,
+    isDarkMode: Boolean,
     handleItemClicked: (ArticleDto) -> Unit,
     handleExpandReset: () -> Unit,
     goToNewArticle: () -> Unit,
+    handleDarkMode: () -> Unit,
     handleLogout: () -> Unit,
     handleCategory: (Int) -> Unit,
     handleRefresh: () -> Unit,
@@ -167,8 +174,10 @@ fun MainContent(
             ) {
 
                 Header(
+                    isDarkMode = isDarkMode,
                     onAddIconClicked = { goToNewArticle() },
-                    onLogoutIconClicked = { handleLogout() }
+                    onLogoutIconClicked = { handleLogout() },
+                    onSwitchDarkMode = { handleDarkMode() }
                 )
 
 
@@ -269,8 +278,10 @@ fun MainContent(
 
 @Composable
 fun Header(
+    isDarkMode: Boolean,
     onAddIconClicked: () -> Unit,
-    onLogoutIconClicked: () -> Unit
+    onLogoutIconClicked: () -> Unit,
+    onSwitchDarkMode: () -> Unit
 ) {
 
     Box(
@@ -286,6 +297,20 @@ fun Header(
                 .align(Alignment.CenterStart)
                 .padding(8.dp)
                 .clickable { onAddIconClicked() }
+        )
+
+        Switch(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end= 80.dp),
+            checked = isDarkMode,
+            onCheckedChange = {
+                onSwitchDarkMode()
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                uncheckedThumbColor = Color.DarkGray
+            )
         )
         Icon(
             Icons.Outlined.ExitToApp,
@@ -446,7 +471,7 @@ fun RadioBtnMainGroup(
             )
             Text(
                 text = category,
-                color = Color.Black,
+                //color = Color.Black,
             )
         }
     }
